@@ -15,7 +15,11 @@ export default function QuickLinks() {
             data-testid="card-psychoeducational-hub"
           >
             <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
-              <Anchor className="text-primary text-xl" size={24} />
+              <img 
+                src="@assets/brain_1757354497739.jpg" 
+                alt="Brain icon" 
+                className="w-6 h-6 object-contain"
+              />
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">Psychoeducational Hub</h3>
             <p className="text-muted-foreground">Explore articles, videos & audio for a healthier mind</p>
