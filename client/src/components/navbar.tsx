@@ -1,5 +1,6 @@
 import { Leaf, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 export default function Navbar() {
   return (
@@ -55,18 +56,22 @@ export default function Navbar() {
 
           {/* Auth Buttons */}
           <div className="flex items-center space-x-4">
-            <Button 
-              className="px-8 py-3 bg-slate-700 text-white rounded-full hover:bg-slate-800 transition-all transform hover:scale-105 font-semibold text-lg shadow-md"
-              data-testid="button-login"
-            >
-              Log In
-            </Button>
-            <Button 
-              className="px-8 py-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-all transform hover:scale-105 font-semibold text-lg shadow-md"
-              data-testid="button-signup"
-            >
-              Sign Up
-            </Button>
+            <Link href="/login">
+              <Button 
+                className="px-8 py-3 bg-slate-700 text-white rounded-full hover:bg-slate-800 transition-all transform hover:scale-105 font-semibold text-lg shadow-md"
+                data-testid="button-login"
+              >
+                Log In
+              </Button>
+            </Link>
+            <Link href="/signup">
+              <Button 
+                className="px-8 py-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-all transform hover:scale-105 font-semibold text-lg shadow-md"
+                data-testid="button-signup"
+              >
+                Sign Up
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
