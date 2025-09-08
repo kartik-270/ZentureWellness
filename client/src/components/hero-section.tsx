@@ -31,7 +31,7 @@ export default function HeroSection() {
           <div className="flex justify-center lg:justify-end">
             <div className="relative">
               <img 
-                src="@assets/hero_1757351853301.png" 
+                src="@assets/hero_1757353625355.png" 
                 alt="Mental wellness illustration with brain and nature elements" 
                 className="w-64 h-64 lg:w-80 lg:h-80 object-contain drop-shadow-2xl"
                 data-testid="hero-illustration"
