@@ -30,7 +30,14 @@ export default function HeroSection() {
 
           {/* Right Illustration */}
           <div className="flex justify-center lg:justify-end">
-            <BrainIllustration />
+            <div className="relative">
+              <img 
+                src="@assets/hero_1757351853301.png" 
+                alt="Mental wellness illustration with brain and nature elements" 
+                className="w-64 h-64 lg:w-80 lg:h-80 object-contain"
+                data-testid="hero-illustration"
+              />
+            </div>
           </div>
         </div>
       </div>
