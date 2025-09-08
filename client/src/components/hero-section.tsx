@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import BrainIllustration from "@/components/brain-illustration";
 
 export default function HeroSection() {
   return (
