@@ -37,7 +37,7 @@ export default function PlatformFeatures() {
           {/* Right Cards */}
           <div className="space-y-6">
             {/* Analytics Card */}
-            <div className="bg-card p-4 rounded-xl shadow-sm border border-border" data-testid="analytics-card">
+            <div className="bg-card p-4 rounded-xl shadow-sm border border-border hover:shadow-md transition-shadow" data-testid="analytics-card">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-medium text-foreground">Understanding Students & Emotions</h4>
                 <TrendingUp className="text-primary" size={20} />
@@ -65,7 +65,7 @@ export default function PlatformFeatures() {
             </div>
 
             {/* Chat Bot Info */}
-            <div className="bg-primary text-white p-4 rounded-xl" data-testid="chatbot-info">
+            <div className="bg-primary text-white p-4 rounded-xl hover:bg-primary/90 transition-colors cursor-pointer" data-testid="chatbot-info">
               <div className="flex items-center space-x-2 mb-2">
                 <Bot size={20} />
                 <h4 className="font-medium">Chat with Mindy, your AI guide.</h4>

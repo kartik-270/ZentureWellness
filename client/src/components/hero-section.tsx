@@ -33,7 +33,7 @@ export default function HeroSection() {
               <img 
                 src="@assets/hero_1757353625355.png" 
                 alt="Mental wellness illustration with brain and nature elements" 
-                className="w-64 h-64 lg:w-80 lg:h-80 object-contain drop-shadow-2xl"
+                className="w-64 h-64 lg:w-80 lg:h-80 object-contain drop-shadow-2xl animate-float"
                 data-testid="hero-illustration"
               />
             </div>
