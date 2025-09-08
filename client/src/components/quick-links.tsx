@@ -1,4 +1,4 @@
-import { Anchor, CalendarCheck, Users, Bot } from "lucide-react";
+import { BookOpen, Calendar, Heart, Bot } from "lucide-react";
 
 export default function QuickLinks() {
   return (
@@ -15,11 +15,7 @@ export default function QuickLinks() {
             data-testid="card-psychoeducational-hub"
           >
             <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
-              <img 
-                src="@assets/brain_1757354497739.jpg" 
-                alt="Brain icon" 
-                className="w-6 h-6 object-contain"
-              />
+              <BookOpen className="text-primary text-xl" size={24} />
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">Psychoeducational Hub</h3>
             <p className="text-muted-foreground">Explore articles, videos & audio for a healthier mind</p>
@@ -31,7 +27,7 @@ export default function QuickLinks() {
             data-testid="card-book-session"
           >
             <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
-              <CalendarCheck className="text-primary text-xl" size={24} />
+              <Calendar className="text-primary text-xl" size={24} />
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">Book a Session</h3>
             <p className="text-muted-foreground">Connect with a campus counselor</p>
@@ -43,7 +39,7 @@ export default function QuickLinks() {
             data-testid="card-peer-support"
           >
             <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
-              <Users className="text-primary text-xl" size={24} />
+              <Heart className="text-primary text-xl" size={24} />
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">Peer Support</h3>
             <p className="text-muted-foreground">Share & connect with fellow students</p>
