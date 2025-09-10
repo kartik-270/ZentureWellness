@@ -36,7 +36,7 @@ export default function HeroSection() {
                 className="w-64 h-64 lg:w-80 lg:h-80 object-contain drop-shadow-2xl animate-float"
               /> */}
               <Image
-            src={"/brain.png"} 
+            src={"/hero_1757353625355.png"} 
             alt={"brain"} 
             width={550}
             height={400}
