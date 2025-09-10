@@ -30,11 +30,11 @@ export default defineConfig({
   },
   server: {
         // The host MUST be 0.0.0.0 to be accessible in container environments
-        // host: '0.0.0.0', 
+        host: '0.0.0.0', 
         port: 3000, // Or your preferred port
         proxy: {
           "/api": {
-            target: "https://zenture-backend.onrender.com",
+            target: "http://127.0.0.1:5000",
             changeOrigin: true,
             secure: false,
           },
