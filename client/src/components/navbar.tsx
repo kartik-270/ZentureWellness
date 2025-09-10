@@ -18,7 +18,7 @@ export default function Navbar() {
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-10">
             <a 
-              href="#" 
+              href="/" 
               className="text-foreground hover:text-primary transition-colors font-semibold text-lg"
               data-testid="nav-home"
             >
