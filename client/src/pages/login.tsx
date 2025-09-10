@@ -1,134 +1,148 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
-import { Link } from "wouter";
+import React, { useState } from "react";
+import { useLocation } from "wouter";
 
+// --- UI Components (assuming these are in a separate file or defined locally as in signup.tsx) ---
+type ButtonProps = { children: React.ReactNode } & React.ComponentProps<'button'>;
+const Button = ({ children, ...props }: ButtonProps) => (
+  <button
+    {...props}
+    className={`w-full py-3 px-4 inline-flex justify-center items-center gap-2 rounded-lg font-medium text-white transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+      props.disabled ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+    }`}
+  >
+    {children}
+  </button>
+);
+
+const Input = (props: React.ComponentProps<'input'>) => (
+  <input
+    {...props}
+    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  />
+);
+
+type LabelProps = { children: React.ReactNode } & React.ComponentProps<'label'>;
+const Label = ({ children, ...props }: LabelProps) => (
+  <label {...props} className="text-sm font-medium text-gray-700 block mb-2">
+    {children}
+  </label>
+);
+
+type LinkProps = { href: string; children: React.ReactNode } & React.ComponentProps<'a'>;
+const Link = ({ href, children, ...props }: LinkProps) => {
+  const [, setLocation] = useLocation();
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    setLocation(href);
+  };
+  return <a href={href} onClick={handleClick} {...props}>{children}</a>;
+};
+
+
+// --- Login Page Component ---
 export default function Login() {
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  });
 
-  const handleNext = () => {
-    setStep(step + 1);
-  };
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleBack = () => {
-    setStep(step - 1);
-  };
+  const [, setLocation] = useLocation();
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value });
-  };
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
 
-  const handleSubmit = () => {
-    console.log("Login submitted:", formData);
-    // Handle login logic here
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccessMessage(null);
 
-  return (
-    <div className="min-h-screen gradient-bg flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-        {/* Header with Brain Icon */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary/10 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <img 
-              src="@assets/hero_1757353625355.png" 
-              alt="Zenture Brain" 
-              className="w-12 h-12 object-contain"
-            />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
-        </div>
+    if (!formData.username || !formData.password) {
+      setError("Please enter both username and password.");
+      return;
+    }
 
-        {/* Progress Indicator */}
-        <div className="flex justify-center mb-8">
-          <div className="flex space-x-2">
-            <div className={`w-3 h-3 rounded-full ${step >= 1 ? 'bg-primary' : 'bg-gray-300'}`}></div>
-            <div className={`w-3 h-3 rounded-full ${step >= 2 ? 'bg-primary' : 'bg-gray-300'}`}></div>
-          </div>
-        </div>
+    setIsLoading(true);
 
-        {/* Step 1: Email */}
-        {step === 1 && (
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                Enter email address
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your.email@domain.com"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                data-testid="input-email"
-              />
-            </div>
-            <Button 
-              onClick={handleNext}
-              disabled={!formData.email}
-              className="w-full py-3 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium"
-              data-testid="button-next"
-            >
-              Next
-            </Button>
-          </div>
-        )}
+    try {
+      const response = await fetch("http://127.0.0.1:5000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-        {/* Step 2: Password */}
-        {step === 2 && (
-          <div className="space-y-6">
-            <button 
-              onClick={handleBack}
-              className="flex items-center text-gray-600 hover:text-gray-800 mb-4"
-              data-testid="button-back"
-            >
-              <ArrowLeft size={16} className="mr-2" />
-              Back
-            </button>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                Enter your password
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={(e) => handleInputChange("password", e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                data-testid="input-password"
-              />
-            </div>
-            <Button 
-              onClick={handleSubmit}
-              disabled={!formData.password}
-              className="w-full py-3 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium"
-              data-testid="button-submit"
-            >
-              Sign In
-            </Button>
-          </div>
-        )}
+      const data = await response.json();
 
-        {/* Footer Links */}
-        <div className="mt-8 text-center space-y-2">
-          <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
-            <Link href="/signup" className="text-primary hover:underline font-medium">
-              Sign up
-            </Link>
-          </p>
-          <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
-            ← Back to home
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
+      if (!response.ok) {
+        throw new Error(data.msg || "Login failed. Please check your credentials.");
+      }
+
+      // Login successful: Save token and redirect
+      localStorage.setItem("authToken", data.access_token);
+      setSuccessMessage("Login successful! Redirecting...");
+      setTimeout(() => {
+        setLocation("/dashboard");
+      }, 1500);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred during login.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen gradient-bg flex items-center justify-center px-4">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <span className="text-4xl">🧠</span>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
+        </div>
+
+        {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-center">{error}</div>}
+        {successMessage && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-center">{successMessage}</div>}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              type="text"
+              placeholder="Your unique username"
+              value={formData.username}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Your password"
+              value={formData.password}
+              onChange={handleInputChange}
+            />
+          </div>
+          <Button type="submit" disabled={isLoading || !formData.username || !formData.password}>
+            {isLoading ? "Signing In..." : "Sign In"}
+          </Button>
+        </form>
+        <div className="mt-8 text-center space-y-2">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{" "}
+            <Link href="/signup" className="text-blue-600 hover:underline font-medium">
+              Sign up
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }

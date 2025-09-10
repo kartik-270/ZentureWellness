@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-
+import { Image } from "lucide-react";
 export default function HeroSection() {
   return (
     <section className="gradient-bg py-16 lg:py-24">
@@ -30,12 +30,18 @@ export default function HeroSection() {
           {/* Right Illustration */}
           <div className="flex justify-center lg:justify-end">
             <div className="relative">
-              <img 
-                src="@assets/hero_1757353625355.png" 
-                alt="Mental wellness illustration with brain and nature elements" 
+              {/* <Image 
+                src={"/brain.png"}
+                alt={"Mental wellness illustration with brain and nature elements" }
                 className="w-64 h-64 lg:w-80 lg:h-80 object-contain drop-shadow-2xl animate-float"
-                data-testid="hero-illustration"
-              />
+              /> */}
+              <Image
+            src={"/brain.png"} 
+            alt={"brain"} 
+            width={550}
+            height={400}
+            className="w-full h-[40vh]  rounded-lg mt-4 "
+          />
             </div>
           </div>
         </div>

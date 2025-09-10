@@ -1,0 +1,354 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenture - Mental Wellness for College Students</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    borderRadius: {
+                        lg: "var(--radius)",
+                        md: "calc(var(--radius) - 2px)",
+                        sm: "calc(var(--radius) - 4px)",
+                    },
+                    colors: {
+                        background: "var(--background)",
+                        foreground: "var(--foreground)",
+                        card: {
+                            DEFAULT: "var(--card)",
+                            foreground: "var(--card-foreground)",
+                        },
+                        primary: {
+                            DEFAULT: "var(--primary)",
+                            foreground: "var(--primary-foreground)",
+                        },
+                        secondary: {
+                            DEFAULT: "var(--secondary)",
+                            foreground: "var(--secondary-foreground)",
+                        },
+                        muted: {
+                            DEFAULT: "var(--muted)",
+                            foreground: "var(--muted-foreground)",
+                        },
+                        accent: {
+                            DEFAULT: "var(--accent)",
+                            foreground: "var(--accent-foreground)",
+                        },
+                        border: "var(--border)",
+                        ring: "var(--ring)",
+                    },
+                    animation: {
+                        'spin-slow': 'spin 8s linear infinite',
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        :root {
+            --background: hsl(210 40% 98%);
+            --foreground: hsl(222.2 84% 4.9%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(222.2 84% 4.9%);
+            --primary: hsl(187 85% 67%);
+            --primary-foreground: hsl(0 0% 100%);
+            --secondary: hsl(210 40% 96%);
+            --secondary-foreground: hsl(222.2 47.4% 11.2%);
+            --muted: hsl(210 40% 96%);
+            --muted-foreground: hsl(215.4 16.3% 46.9%);
+            --accent: hsl(210 40% 96%);
+            --accent-foreground: hsl(222.2 47.4% 11.2%);
+            --border: hsl(214.3 31.8% 91.4%);
+            --ring: hsl(187 85% 67%);
+            --radius: 0.5rem;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, hsl(197 86% 85%) 0%, hsl(200 100% 90%) 50%, hsl(190 100% 95%) 100%);
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-background text-foreground overflow-x-hidden">
+    <!-- Navigation -->
+    <nav class="bg-white/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-leaf text-white text-lg"></i>
+                    </div>
+                    <span class="text-2xl font-bold text-foreground">Zenture</span>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#" class="text-foreground hover:text-primary transition-colors font-medium">Home</a>
+                    <a href="#" class="text-muted-foreground hover:text-primary transition-colors font-medium">Resources</a>
+                    <a href="#" class="text-muted-foreground hover:text-primary transition-colors font-medium">About Us</a>
+                    <a href="#" class="text-muted-foreground hover:text-primary transition-colors font-medium">FAQ</a>
+                    <a href="#" class="text-muted-foreground hover:text-primary transition-colors font-medium">Community</a>
+                </div>
+
+                <!-- Auth Buttons -->
+                <div class="flex items-center space-x-3">
+                    <button class="px-6 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium">
+                        Log In
+                    </button>
+                    <button class="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium">
+                        Sign Up
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button class="p-2 rounded-md text-foreground hover:bg-accent">
+                        <i class="fas fa-bars text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg py-16 lg:py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <!-- Left Content -->
+                <div class="space-y-6">
+                    <h1 class="text-4xl lg:text-5xl xl:text-6xl font-bold text-foreground leading-tight">
+                        Bridging the Gap: Mental Wellness for College Students
+                    </h1>
+                    <p class="text-lg lg:text-xl text-muted-foreground leading-relaxed max-w-xl">
+                        Positive mental health is helping people live happier, healthier and longer lives.
+                    </p>
+                    <button class="px-8 py-4 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-all transform hover:scale-105 font-medium text-lg shadow-lg">
+                        Start your Journey Today
+                    </button>
+                </div>
+
+                <!-- Right Illustration -->
+                <div class="flex justify-center lg:justify-end">
+                    <div class="relative">
+                        <!-- Brain SVG with graduation cap -->
+                        <div class="relative w-64 h-64 lg:w-80 lg:h-80">
+                            <!-- Brain outline -->
+                            <svg class="w-full h-full text-primary/70" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M100 20C120 20 140 30 150 50C160 40 170 45 175 60C180 75 175 90 170 100C175 110 180 125 175 140C170 155 160 160 150 150C140 170 120 180 100 180C80 180 60 170 50 150C40 160 30 155 25 140C20 125 25 110 30 100C25 90 20 75 25 60C30 45 40 40 50 50C60 30 80 20 100 20Z" stroke="currentColor" stroke-width="3" fill="currentColor" opacity="0.3"/>
+                                <!-- Brain details -->
+                                <path d="M70 60C80 55 90 60 100 55C110 60 120 55 130 60" stroke="currentColor" stroke-width="2" opacity="0.6"/>
+                                <path d="M65 80C75 85 85 80 95 85C105 80 115 85 125 80" stroke="currentColor" stroke-width="2" opacity="0.6"/>
+                                <path d="M70 100C80 95 90 100 100 95C110 100 120 95 130 100" stroke="currentColor" stroke-width="2" opacity="0.6"/>
+                                <path d="M75 120C85 115 95 120 105 115C115 120 125 115 135 120" stroke="currentColor" stroke-width="2" opacity="0.6"/>
+                            </svg>
+                            
+                            <!-- Graduation Cap (animated) -->
+                            <div class="absolute top-4 left-1/2 transform -translate-x-1/2 animate-spin-slow">
+                                <svg class="w-20 h-16 text-slate-700" viewBox="0 0 80 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Cap base -->
+                                    <ellipse cx="40" cy="45" rx="35" ry="8" fill="currentColor"/>
+                                    <!-- Cap top -->
+                                    <path d="M5 40L40 25L75 40L40 35Z" fill="currentColor"/>
+                                    <!-- Tassel -->
+                                    <line x1="70" y1="35" x2="75" y2="50" stroke="currentColor" stroke-width="2"/>
+                                    <circle cx="75" cy="52" r="3" fill="currentColor"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Links Section -->
+    <section class="py-16 bg-background">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl lg:text-4xl font-bold text-foreground mb-12">Quick Links</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Psychoeducational Hub -->
+                <div class="bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-anchor text-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-foreground mb-2">Psychoeducational Hub</h3>
+                    <p class="text-muted-foreground">Explore articles, videos & audio for a healthier mind</p>
+                </div>
+
+                <!-- Book a Session -->
+                <div class="bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-calendar-check text-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-foreground mb-2">Book a Session</h3>
+                    <p class="text-muted-foreground">Connect with a campus counselor</p>
+                </div>
+
+                <!-- Peer Support -->
+                <div class="bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-md transition-shadow">
+                    <div class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-users text-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-foreground mb-2">Peer Support</h3>
+                    <p class="text-muted-foreground">Share & connect with fellow students</p>
+                </div>
+
+                <!-- AI Chat Widget -->
+                <div class="bg-primary/10 p-6 rounded-xl border-2 border-primary/20">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-foreground">Zenture Ai</h3>
+                        <div class="flex space-x-1">
+                            <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                            <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                            <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-white p-3 rounded-lg text-sm">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <div class="w-6 h-6 bg-primary rounded-full"></div>
+                                <span class="font-medium">AI</span>
+                            </div>
+                            <p class="text-muted-foreground">I Feel Depressed. What can I do?</p>
+                        </div>
+                        <div class="bg-primary text-white p-3 rounded-lg text-sm">
+                            Chat with Mindy, your AI guide.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Platform Features Section -->
+    <section class="py-16 bg-muted/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl lg:text-4xl font-bold text-foreground mb-12">Platform Feature and Impacts</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Left Icons -->
+                <div class="space-y-6">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-shield-alt text-primary text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-foreground">Confidential & Safe</h3>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-question-circle text-primary text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-foreground">FAQs & Help</h3>
+                    </div>
+                </div>
+
+                <!-- Student Photo -->
+                <div class="lg:col-span-2">
+                    <!-- A diverse group of college students standing together with books and backpacks, smiling -->
+                    <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&h=800" alt="Group of diverse college students" class="rounded-xl shadow-lg w-full h-64 object-cover" />
+                </div>
+
+                <!-- Right Cards -->
+                <div class="space-y-6">
+                    <!-- Analytics Card -->
+                    <div class="bg-card p-4 rounded-xl shadow-sm border border-border">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium text-foreground">Understanding Students & Emotions</h4>
+                            <i class="fas fa-chart-line text-primary"></i>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-primary rounded-full"></div>
+                                <div class="flex-1 bg-muted rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full w-3/4"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                                <div class="flex-1 bg-muted rounded-full h-2">
+                                    <div class="bg-green-400 h-2 rounded-full w-1/2"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
+                                <div class="flex-1 bg-muted rounded-full h-2">
+                                    <div class="bg-blue-400 h-2 rounded-full w-2/3"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Bot Info -->
+                    <div class="bg-primary text-white p-4 rounded-xl">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <i class="fas fa-robot text-xl"></i>
+                            <h4 class="font-medium">Chat with Mindy, your AI guide.</h4>
+                        </div>
+                        <p class="text-sm opacity-90">Hi there! Feeling overwhelmed? I'm here Wer of help. Just exploring.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-100 py-12 border-t border-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
+                <!-- Footer Links -->
+                <div class="flex flex-wrap justify-center md:justify-start items-center space-x-6 text-sm">
+                    <a href="#" class="text-muted-foreground hover:text-primary transition-colors">About Us</a>
+                    <span class="text-muted-foreground">|</span>
+                    <a href="#" class="text-muted-foreground hover:text-primary transition-colors">Our Mission</a>
+                    <span class="text-muted-foreground">|</span>
+                    <a href="#" class="text-muted-foreground hover:text-primary transition-colors">Privacy Policy</a>
+                    <span class="text-muted-foreground">|</span>
+                    <a href="#" class="text-muted-foreground hover:text-primary transition-colors">Terms of Service</a>
+                </div>
+
+                <!-- Language Options -->
+                <div class="flex items-center space-x-4 text-sm">
+                    <span class="text-muted-foreground">Available In :</span>
+                    <a href="#" class="text-foreground hover:text-primary transition-colors font-medium">English</a>
+                    <span class="text-muted-foreground">|</span>
+                    <a href="#" class="text-muted-foreground hover:text-primary transition-colors">Hindi</a>
+                    <span class="text-muted-foreground">|</span>
+                    <a href="#" class="text-muted-foreground hover:text-primary transition-colors">Tamil</a>
+                    <span class="text-muted-foreground">|</span>
+                </div>
+
+                <!-- Social Icons -->
+                <div class="flex items-center space-x-4">
+                    <a href="#" class="w-10 h-10 bg-slate-700 text-white rounded-full flex items-center justify-center hover:bg-slate-800 transition-colors">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-slate-700 text-white rounded-full flex items-center justify-center hover:bg-slate-800 transition-colors">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-slate-700 text-white rounded-full flex items-center justify-center hover:bg-slate-800 transition-colors">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // TODO: Implement business logic, API calls, or state management
+        // Mobile menu toggle functionality would go here
+        // Form submission handlers would go here
+        // API integration for booking sessions would go here
+        // Chat functionality would go here
+    </script>
+</body>
+</html>

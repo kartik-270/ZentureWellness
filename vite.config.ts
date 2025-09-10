@@ -20,7 +20,7 @@ export default defineConfig({
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
       "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+      // "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
@@ -29,9 +29,15 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    fs: {
-      strict: true,
-      deny: ["**/.*"],
-    },
-  },
+        // The host MUST be 0.0.0.0 to be accessible in container environments
+        host: '0.0.0.0', 
+        port: 3000, // Or your preferred port
+        proxy: {
+          "/api": {
+            target: "http://127.0.0.1:5000",
+            changeOrigin: true,
+            secure: false,
+          },
+        },
+      },
 });
