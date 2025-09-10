@@ -215,7 +215,7 @@ export default function Signup() {
       await handleApiResponse(response);
 
       setApiMessage("Signup complete! Redirecting you now...");
-      setTimeout(() => setLocation("/dashboard"), 2000);
+      setTimeout(() => setLocation("/"), 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred while saving your profile.");
     } finally {

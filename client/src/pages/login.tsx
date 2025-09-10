@@ -86,7 +86,7 @@ export default function Login() {
       localStorage.setItem("authToken", data.access_token);
       setSuccessMessage("Login successful! Redirecting...");
       setTimeout(() => {
-        setLocation("/dashboard");
+        setLocation("/");
       }, 1500);
 
     } catch (err) {
