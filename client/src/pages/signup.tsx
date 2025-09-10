@@ -118,7 +118,7 @@ export default function Signup() {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/register/start", {
+      const response = await fetch("https://zenture-backend.onrender.com/api/register/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email }),
@@ -148,7 +148,7 @@ export default function Signup() {
     setIsLoading(true);
     try {
       // Verify & create account
-      const createResponse = await fetch("http://127.0.0.1:5000/api/register/verify-and-create", {
+      const createResponse = await fetch("https://zenture-backend.onrender.com/api/register/verify-and-create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email, otp: formData.otp, password: formData.password }),
@@ -156,7 +156,7 @@ export default function Signup() {
       const createData = await handleApiResponse(createResponse);
 
       // Login to get token
-      const loginResponse = await fetch("http://127.0.0.1:5000/api/login", {
+      const loginResponse = await fetch("https://zenture-backend.onrender.com/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: createData.username, password: formData.password }),
@@ -198,7 +198,7 @@ export default function Signup() {
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/register/complete-profile", {
+      const response = await fetch("https://zenture-backend.onrender.com/api/register/complete-profile", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

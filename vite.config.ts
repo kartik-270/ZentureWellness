@@ -25,18 +25,16 @@ export default defineConfig({
   },
   root: path.resolve(import.meta.dirname, "client"),
   build: {
-    // outDir: path.resolve(import.meta.dirname, "dist/public"),
-        outDir: path.resolve(import.meta.dirname, "dist"),
-
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
   },
   server: {
         // The host MUST be 0.0.0.0 to be accessible in container environments
-        host: '0.0.0.0', 
+        // host: '0.0.0.0', 
         port: 3000, // Or your preferred port
         proxy: {
           "/api": {
-            target: "http://127.0.0.1:5000",
+            target: "https://zenture-backend.onrender.com",
             changeOrigin: true,
             secure: false,
           },
