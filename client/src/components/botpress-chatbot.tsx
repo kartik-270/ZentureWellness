@@ -31,6 +31,7 @@ interface BotpressConfig {
     feedbackEnabled: boolean;
     footer: string;
     additionalStylesheetUrl?: string;
+    startConversation?: boolean;
   };
 }
 
@@ -65,6 +66,7 @@ const BotpressChatbot = ({ authToken }: BotpressChatbotProps): JSX.Element => {
             radius: 4,
             feedbackEnabled: true,
             footer: "[⚡ by Zenture]",
+startConversation:true,
             additionalStylesheetUrl:
               "https://files.bpcontent.cloud/2025/09/06/14/20250906140350-435CT55V.css",
           },

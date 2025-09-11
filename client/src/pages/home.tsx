@@ -58,7 +58,8 @@ export default function Home() {
     }
   };
 
-  return (
+  return (<>
+      <Navbar />
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       {/* This is the main change. We're applying a larger, more prominent blur overlay
         when the chat is open. The `fixed inset-0` ensures it covers the entire viewport.
@@ -71,7 +72,6 @@ export default function Home() {
       )}
       
       <div className="relative z-10">
-        <Navbar />
         <HeroSection />
         <QuickLinks onChatTrigger={handleChatTrigger} />
         <PlatformFeatures />
@@ -86,6 +86,6 @@ export default function Home() {
         the positioning while we just control the overlay. 
       */}
       <BotpressChatbot authToken={authToken} />
-    </div>
+    </div></>
   );
 }

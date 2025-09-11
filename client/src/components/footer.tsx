@@ -8,7 +8,7 @@ export default function Footer() {
           {/* Footer Links */}
           <div className="flex flex-wrap justify-center md:justify-start items-center space-x-6 text-sm">
             <a 
-              href="#" 
+              href="/about" 
               className="text-muted-foreground hover:text-primary transition-colors"
               data-testid="footer-about"
             >

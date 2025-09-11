@@ -70,14 +70,14 @@ export default function Navbar() {
               Home
             </a>
             <a 
-              href="#" 
+              href="/psychoeducational-hub" 
               className="text-muted-foreground hover:text-primary transition-colors font-semibold text-lg"
               data-testid="nav-resources"
             >
               Resources
             </a>
             <a 
-              href="#" 
+              href="/about" 
               className="text-muted-foreground hover:text-primary transition-colors font-semibold text-lg"
               data-testid="nav-about"
             >

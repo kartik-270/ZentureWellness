@@ -63,7 +63,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
               className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
               data-testid="card-peer-support"
             >
-          <Link href="/peer-support">
+          <Link href="/">
               <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/30 transition-colors">
                 <Heart
                   className="text-primary text-xl group-hover:scale-110 transition-transform"

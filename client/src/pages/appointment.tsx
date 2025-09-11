@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import Calendar from "react-calendar";
 import 'react-calendar/dist/Calendar.css'; // Default styles
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
-import { MessageCircle, Video, PhoneCall, User } from "lucide-react"; // Add at the top
+import { MessageCircle, Video, PhoneCall, User } from "lucide-react";
 
 // You can add your own custom CSS to override styles
 const customCalendarStyles = `
@@ -42,12 +43,13 @@ const customCalendarStyles = `
 
 interface Counselor {
   id: number;
-  user_id: number;   
+  user_id: number;
   name: string;
-  specialty: string; 
+  specialty: string;
   reviews: number;
   image: string;
 }
+
 interface Appointment {
   counselor: string;
   date: string;
@@ -58,8 +60,9 @@ interface Appointment {
 }
 
 const BookingPage: React.FC = () => {
+  const [, setLocation] = useLocation();
   const [step, setStep] = useState(1);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null); // Use Date object for Calendar
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [counselors, setCounselors] = useState<Counselor[]>([]);
   const [selectedCounselorId, setSelectedCounselorId] = useState<number | null>(null);
   const [selectedCounselorDetails, setSelectedCounselorDetails] = useState<Counselor | null>(null);
@@ -67,14 +70,16 @@ const BookingPage: React.FC = () => {
   const [notes, setNotes] = useState("");
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setLoggedIn(false);
+      return;
+    }
+    setLoggedIn(true);
     const fetchCounselors = async () => {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        console.error("No auth token found.");
-        return;
-      }
       try {
         const res = await fetch("https://zenture-backend.onrender.com/api/counselors", {
           headers: {
@@ -176,161 +181,212 @@ const BookingPage: React.FC = () => {
     }
   };
 
+  const getModeIcon = (modeName: string) => {
+    const iconBaseClasses = "w-12 h-12 text-blue-600";
+    switch (modeName) {
+      case "Message":
+        return (
+          <MessageCircle className={iconBaseClasses} />
+        );
+      case "Video Call":
+        return (
+          <Video className={iconBaseClasses} />
+        );
+      case "Personal Meeting":
+        return (
+          <User className={iconBaseClasses} />
+        );
+      case "Phone Call":
+        return (
+          <PhoneCall className={iconBaseClasses} />
+        );
+      default:
+        return (
+          <MessageCircle className={iconBaseClasses} />
+        );
+    }
+  };
+
+  const handleAddToCalendar = () => {
+    if (!appointment || !selectedDate) {
+      alert("Appointment details are missing.");
+      return;
+    }
+
+    const startDateTime = new Date(selectedDate);
+    // Assuming a 30-minute appointment for demonstration
+    const endDateTime = new Date(startDateTime.getTime() + 30 * 60000); 
+
+    const formatDateTime = (date: Date) => {
+      return date.toISOString().replace(/-|:|\.\d\d\d/g, '');
+    };
+
+    const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=Counseling Session with ${appointment.counselor}&dates=${formatDateTime(startDateTime)}/${formatDateTime(endDateTime)}&details=Method: ${appointment.mode}%0ANotes: ${appointment.description}&sf=true&output=xml`;
+
+    window.open(calendarUrl, '_blank');
+  };
+
   return (
     <>
       <Navbar/>
       <div className="p-6 max-w-5xl mx-auto min-h-[74vh]">
         <style>{customCalendarStyles}</style>
         <h2 className="text-2xl font-bold mb-6 text-center">Book a Session with a Counselor</h2>
-        
-        {step === 1 && (
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold bg-blue-600 text-white">1</div>
-                  <h3 className="font-semibold">Select Date</h3>
-              </div>
-              <Calendar 
-                  onChange={(value) => {
-                      if (value instanceof Date) {
-                        setSelectedDate(value);
-                      }
-                  }} 
-                  value={selectedDate} 
-                  className="w-full"
-                  minDate={new Date()}
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold bg-gray-300 text-gray-500">2</div>
-                  <h3 className="font-semibold">Choose Counselor</h3>
-              </div>
-              <div className="space-y-3 max-h-80 overflow-y-auto">
-                {counselors.map((c) => (
-                  <div
-                    key={c.user_id}
-                    onClick={() => setSelectedCounselorId(c.user_id)}
-                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer ${
-                      selectedCounselorId === c.user_id ? "border-blue-500 bg-blue-50" : "border-gray-300"
-                    }`}
-                  >
-                    <img src={c.image} alt={c.name} className="w-12 h-12 rounded-full" />
-                    <div>
-                      <p className="font-semibold">{c.name}</p>
-                      <p className="text-sm text-gray-600">Speciality: {c.specialty}</p>
-                      <p className="text-sm text-yellow-600">⭐ {c.reviews} Reviews</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+        {!loggedIn ? (
+          <div className="flex flex-col items-center justify-center text-center p-10 border rounded-xl bg-gray-50">
+            <p className="text-lg font-medium mb-4">
+              To schedule an appointment, you have to log in.
+            </p>
             <button
-              onClick={handleStep1Next}
-              className="col-span-2 bg-blue-600 text-white py-2 rounded-lg mt-4"
+              onClick={() => setLocation("/login")}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
             >
-              Next
+              Go to Login
             </button>
           </div>
-        )}
-
-        {step === 2 && (
-          <div>
-            <h3 className="text-xl font-bold mb-4 text-center">Connect with Your Counselor</h3>
-            
-            <div className="flex items-center gap-4 mb-8 p-4 border rounded-lg bg-gray-100">
-               <img src={selectedCounselorDetails?.image} alt={selectedCounselorDetails?.name} className="w-16 h-16 rounded-full" />
-               <div>
-                  <p className="font-semibold text-lg">{selectedCounselorDetails?.name}</p>
-                  <p className="text-sm text-gray-600">Specialty: {selectedCounselorDetails?.specialization}</p>
-                  <p className="text-sm text-yellow-600">⭐ {selectedCounselorDetails?.reviews} Reviews</p>
-               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-6">
-              <div className="col-span-1">
-                  <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold bg-blue-600 text-white">3</div>
-                      <h3 className="font-semibold">Select Mode</h3>
+        ) : (
+          <>
+            {step === 1 && (
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold bg-blue-600 text-white">1</div>
+                    <h3 className="font-semibold">Select Date</h3>
                   </div>
                   
-<div className="grid grid-cols-2 gap-4">
-  {["Message", "Video Call", "Personal Meeting", "Phone Call"].map((m) => {
-    let Icon;
-    switch (m) {
-      case "Message":
-        Icon = MessageCircle;
-        break;
-      case "Video Call":
-        Icon = Video;
-        break;
-      case "Personal Meeting":
-        Icon = User; // Represents in-person
-        break;
-      case "Phone Call":
-        Icon = PhoneCall;
-        break;
-      default:
-        Icon = MessageCircle;
-    }
+                  <Calendar 
+                    onChange={(value) => {
+                        if (value instanceof Date) {
+                          setSelectedDate(value);
+                        }
+                    }} 
+                    value={selectedDate} 
+                    className="w-full"
+                    minDate={new Date()}
+                  />
+                </div>
 
-    return (
-      <div
-        key={m}
-        onClick={() => setMode(m)}
-        className={`flex flex-col items-center p-4 rounded-lg border cursor-pointer transition-colors ${
-          mode === m ? "border-blue-500 bg-blue-50" : "border-gray-300"
-        }`}
-      >
-        <Icon className="w-12 h-12 mb-2 text-blue-600" />
-        <p className="text-sm font-medium">{m}</p>
-      </div>
-    );
-  })}
-</div>
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold bg-gray-300 text-gray-500">2</div>
+                    <h3 className="font-semibold">Choose Counselor</h3>
+                  </div>
+                  <div className="space-y-3 max-h-80 overflow-y-auto">
+                    {counselors.map((c) => (
+                      <div
+                        key={c.user_id}
+                        onClick={() => setSelectedCounselorId(c.user_id)}
+                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer ${
+                          selectedCounselorId === c.user_id ? "border-blue-500 bg-blue-50" : "border-gray-300"
+                        }`}
+                      >
+                        <img src={c.image} alt={c.name} className="w-12 h-12 rounded-full" />
+                        <div>
+                          <p className="font-semibold">{c.name}</p>
+                          <p className="text-sm text-gray-600">Specialty: {c.specialty}</p>
+                          <p className="text-sm text-yellow-600">⭐ {c.reviews} Reviews</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={handleStep1Next}
+                  className="col-span-2 bg-blue-600 text-white py-2 rounded-lg mt-4"
+                >
+                  Next
+                </button>
               </div>
-              <div className="col-span-1">
-                  <div className="flex items-center gap-2 mb-4">
+            )}
+
+            {step === 2 && (
+              <div>
+                <h3 className="text-xl font-bold mb-4 text-center">Connect with Your Counselor</h3>
+                
+                <div className="flex items-center gap-4 mb-8 p-4 border rounded-lg bg-gray-100">
+                  <img src={selectedCounselorDetails?.image} alt={selectedCounselorDetails?.name} className="w-16 h-16 rounded-full" />
+                  <div>
+                    <p className="font-semibold text-lg">{selectedCounselorDetails?.name}</p>
+                    <p className="text-sm text-gray-600">Specialty: {selectedCounselorDetails?.specialty}</p>
+                    <p className="text-sm text-yellow-600">⭐ {selectedCounselorDetails?.reviews} Reviews</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="col-span-1">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold bg-blue-600 text-white">3</div>
+                      <h3 className="font-semibold">Select Mode</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      {["Message", "Video Call", "Personal Meeting", "Phone Call"].map((m) => {
+                        const Icon = getModeIcon(m);
+                        return (
+                          <div
+                            key={m}
+                            onClick={() => setMode(m)}
+                            className={`flex flex-col items-center p-4 rounded-lg border cursor-pointer transition-colors ${
+                              mode === m ? "border-blue-500 bg-blue-50" : "border-gray-300"
+                            }`}
+                          >
+                            <div className="w-12 h-12 flex items-center justify-center mb-2">
+                               {Icon}
+                            </div>
+                            <p className="text-sm font-medium">{m}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="col-span-1">
+                    <div className="flex items-center gap-2 mb-4">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold bg-gray-300 text-gray-500">4</div>
                       <h3 className="font-semibold">You Want to share anything</h3>
-                  </div>
-                  <textarea
+                    </div>
+                    <textarea
                       className="border p-4 rounded-lg w-full h-48 focus:ring-2 focus:ring-blue-500"
                       placeholder="Type here!"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                  />
-                  <button
+                    />
+                    <button
                       onClick={handleStep2Next}
                       className="bg-blue-600 text-white py-2 rounded-lg mt-4 w-full"
                       disabled={isLoading}
-                  >
+                    >
                       {isLoading ? "Booking..." : "Next"}
-                  </button>
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {step === 3 && appointment && (
-          <div className="flex flex-col items-center justify-center text-center p-6">
-            <div className="w-24 h-24 rounded-full flex items-center justify-center bg-blue-100 mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-8.83"/><path d="M22 4L12 14.01l-3-3"/></svg>
-            </div>
-            <h3 className="text-3xl font-bold mb-2">Booking Confirmed!</h3>
-            <p className="text-lg text-gray-600 mb-6">You are set</p>
-            <div className="text-left w-full max-w-sm border p-6 rounded-lg bg-gray-50">
-              <p className="mb-2"><strong>Counselor :</strong> {appointment.counselor}</p>
-              <p className="mb-2"><strong>Date :</strong> {appointment.date}</p>
-              <p className="mb-2"><strong>Time :</strong> {appointment.time}</p>
-              <p><strong>Method :</strong> {appointment.mode}</p>
-            </div>
-            <div className="mt-8 flex gap-4">
-                <button className="bg-blue-600 text-white py-2 px-4 rounded-lg">Add to Calendar</button>
-                <button className="border border-blue-600 text-blue-600 py-2 px-4 rounded-lg">View Session Details</button>
-            </div>
-          </div>
+            {step === 3 && appointment && (
+              <div className="flex flex-col items-center justify-center text-center p-6">
+                <div className="w-24 h-24 rounded-full flex items-center justify-center bg-blue-100 mb-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-8.83"/><path d="M22 4L12 14.01l-3-3"/></svg>
+                </div>
+                <h3 className="text-3xl font-bold mb-2">Booking Confirmed!</h3>
+                <p className="text-lg text-gray-600 mb-6">You are set</p>
+                <div className="text-left w-full max-w-sm border p-6 rounded-lg bg-gray-50">
+                  <p className="mb-2"><strong>Counselor :</strong> {appointment.counselor}</p>
+                  <p className="mb-2"><strong>Date :</strong> {appointment.date}</p>
+                  <p className="mb-2"><strong>Time :</strong> {appointment.time}</p>
+                  <p><strong>Method :</strong> {appointment.mode}</p>
+                </div>
+                <div className="mt-8 flex gap-4">
+                    <button 
+                        onClick={handleAddToCalendar}
+                        className="bg-blue-600 text-white py-2 px-4 rounded-lg"
+                    >
+                        Add to Calendar
+                    </button>
+                    {/* <button className="border border-blue-600 text-blue-600 py-2 px-4 rounded-lg">View Session Details</button> */}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
       <Footer />

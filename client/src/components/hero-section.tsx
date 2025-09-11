@@ -19,7 +19,7 @@ export default function HeroSection() {
               data-testid="hero-subtitle"
             >
               Positive mental health is helping people live happier, healthier and longer lives.
-            </p><a href="/" className="">
+            </p><a href="/signup" className="">
             <Button 
               className="px-8 my-7 bg-slate-700 text-white rounded-full hover:bg-slate-800 transition-all transform hover:scale-105 font-semibold text-md shadow-lg"
               data-testid="button-start-journey"
