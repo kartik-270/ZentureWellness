@@ -1,6 +1,7 @@
 import { Leaf, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import logo from "../../../public/logo1.jpeg";
 
 export default function Navbar() {
   return (
@@ -10,8 +11,8 @@ export default function Navbar() {
          {/* Logo */}
           <div className="flex items-center space-x-2 ml-[-30px]" data-testid="logo">
             <img
-              src="/images/logo1.jpeg"
-              alt="Zenture Logo"
+              src={logo}
+              alt={"logo"}
               className="w-12 h-12 object-contain"   // 🔥 adjust size only
              />
             <span className="text-3xl font-bold text-foreground tracking-tight">
