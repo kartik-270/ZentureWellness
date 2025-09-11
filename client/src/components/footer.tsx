@@ -1,4 +1,5 @@
 import { Facebook, Twitter, Linkedin } from "lucide-react";
+import { Link, useLocation } from "wouter";
 
 export default function Footer() {
   return (
@@ -7,13 +8,13 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
           {/* Footer Links */}
           <div className="flex flex-wrap justify-center md:justify-start items-center space-x-6 text-sm">
-            <a 
+            <Link 
               href="/about" 
               className="text-muted-foreground hover:text-primary transition-colors"
               data-testid="footer-about"
             >
               About Us
-            </a>
+            </Link>
             <span className="text-muted-foreground">|</span>
             <a 
               href="#" 
