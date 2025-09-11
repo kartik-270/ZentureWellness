@@ -62,41 +62,41 @@ export default function Navbar() {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-10">
-            <a 
+            <Link
               href="/" 
               className="text-foreground hover:text-primary transition-colors font-semibold text-lg"
               data-testid="nav-home"
             >
               Home
-            </a>
-            <a 
+            </Link>
+            <Link 
               href="/psychoeducational-hub" 
               className="text-muted-foreground hover:text-primary transition-colors font-semibold text-lg"
               data-testid="nav-resources"
             >
               Resources
-            </a>
-            <a 
+            </Link>
+            <Link 
               href="/about" 
               className="text-muted-foreground hover:text-primary transition-colors font-semibold text-lg"
               data-testid="nav-about"
             >
               About Us
-            </a>
-            <a 
+            </Link>
+            <Link
               href="#" 
               className="text-muted-foreground hover:text-primary transition-colors font-semibold text-lg"
               data-testid="nav-faq"
             >
               FAQ
-            </a>
-            <a 
+            </Link>
+            <Link 
               href="#" 
               className="text-muted-foreground hover:text-primary transition-colors font-semibold text-lg"
               data-testid="nav-community"
             >
               Community
-            </a>
+            </Link>
           </div>
 
           {/* Auth Buttons */}
