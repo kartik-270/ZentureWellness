@@ -20,8 +20,8 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Psychoeducational Hub */}
-          <Link href="/psychoeducational-hub">
             <div className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
+          <Link href="/psychoeducational-hub">
               <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/30 transition-colors">
                 <BookOpen
                   className="text-primary text-xl group-hover:scale-110 transition-transform"
@@ -34,15 +34,15 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
               <p className="text-muted-foreground">
                 Explore articles, videos & audio for a healthier mind
               </p>
-            </div>
           </Link>
+            </div>
 
           {/* Book a Session */}
-          <Link href="/book-appointment">
             <div
               className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
               data-testid="card-book-session"
             >
+          <Link href="/book-appointment">
               <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/30 transition-colors">
                 <Calendar
                   className="text-primary text-xl group-hover:scale-110 transition-transform"
@@ -55,15 +55,15 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
               <p className="text-muted-foreground">
                 Connect with a campus counselor
               </p>
-            </div>
           </Link>
+            </div>
 
           {/* Peer Support */}
-          <Link href="/peer-support">
             <div
               className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
               data-testid="card-peer-support"
             >
+          <Link href="/peer-support">
               <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/30 transition-colors">
                 <Heart
                   className="text-primary text-xl group-hover:scale-110 transition-transform"
@@ -76,8 +76,8 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
               <p className="text-muted-foreground">
                 Share & connect with fellow students
               </p>
-            </div>
           </Link>
+            </div>
 
           {/* AI Chat Widget */}
           <div
