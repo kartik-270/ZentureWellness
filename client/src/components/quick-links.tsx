@@ -1,66 +1,88 @@
 "use client";
 
+import { Link } from "wouter";
 import { BookOpen, Calendar, Heart, Bot } from "lucide-react";
 
-// ⚠️ Add the interface to define the component's props
 interface QuickLinksProps {
   onChatTrigger: () => void;
 }
 
-// ⚠️ Accept the prop in the function signature
 export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
   return (
     <section className="py-4 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-12" data-testid="quick-links-title">
+        <h2
+          className="text-3xl lg:text-4xl font-bold text-foreground mb-12"
+          data-testid="quick-links-title"
+        >
           Quick Links
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Psychoeducational Hub */}
-          <div className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
-            <a className="block" href="/psychoeducational-hub">
+          <Link href="/psychoeducational-hub">
+            <div className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
               <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/30 transition-colors">
-                <BookOpen className="text-primary text-xl group-hover:scale-110 transition-transform" size={24} />
+                <BookOpen
+                  className="text-primary text-xl group-hover:scale-110 transition-transform"
+                  size={24}
+                />
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">Psychoeducational Hub</h3>
-              <p className="text-muted-foreground">Explore articles, videos & audio for a healthier mind</p>
-            </a>
-          </div>
+              <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                Psychoeducational Hub
+              </h3>
+              <p className="text-muted-foreground">
+                Explore articles, videos & audio for a healthier mind
+              </p>
+            </div>
+          </Link>
 
-          <div
-            className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
-            data-testid="card-book-session"
-          >
-            {/* Book a Session */}
-            <a className="block" href="/book-appointment">
+          {/* Book a Session */}
+          <Link href="/book-appointment">
+            <div
+              className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+              data-testid="card-book-session"
+            >
               <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/30 transition-colors">
-                <Calendar className="text-primary text-xl group-hover:scale-110 transition-transform" size={24} />
+                <Calendar
+                  className="text-primary text-xl group-hover:scale-110 transition-transform"
+                  size={24}
+                />
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">Book a Session</h3>
-              <p className="text-muted-foreground">Connect with a campus counselor</p>
-            </a>
-          </div>
+              <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                Book a Session
+              </h3>
+              <p className="text-muted-foreground">
+                Connect with a campus counselor
+              </p>
+            </div>
+          </Link>
 
           {/* Peer Support */}
-          <div
-            className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
-            data-testid="card-peer-support"
-          >
-            <a className="block" href="/">
+          <Link href="/peer-support">
+            <div
+              className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+              data-testid="card-peer-support"
+            >
               <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/30 transition-colors">
-                <Heart className="text-primary text-xl group-hover:scale-110 transition-transform" size={24} />
+                <Heart
+                  className="text-primary text-xl group-hover:scale-110 transition-transform"
+                  size={24}
+                />
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">Peer Support</h3>
-              <p className="text-muted-foreground">Share & connect with fellow students</p>
-            </a>
-          </div>
+              <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                Peer Support
+              </h3>
+              <p className="text-muted-foreground">
+                Share & connect with fellow students
+              </p>
+            </div>
+          </Link>
 
           {/* AI Chat Widget */}
           <div
             className="bg-primary/10 p-6 rounded-xl border-2 border-primary/20 hover:bg-primary/15 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer"
             data-testid="ai-chat-widget"
-            // Call the prop function directly
             onClick={onChatTrigger}
           >
             <div className="flex items-center justify-between mb-4">
@@ -79,7 +101,9 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
                   </div>
                   <span className="font-medium">AI</span>
                 </div>
-                <p className="text-muted-foreground">I Feel Depressed. What can I do?</p>
+                <p className="text-muted-foreground">
+                  I Feel Depressed. What can I do?
+                </p>
               </div>
               <div className="bg-primary text-white p-3 rounded-lg text-sm">
                 Chat with Mindy, your AI guide.
