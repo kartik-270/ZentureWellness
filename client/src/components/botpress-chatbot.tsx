@@ -50,8 +50,8 @@ const BotpressChatbot = ({ authToken }: BotpressChatbotProps): JSX.Element => {
     const initializeBotpress = () => {
       if (window.botpress) {
         const config: BotpressConfig = {
-          botId: "7ae5719e-66ae-4d89-af5c-72d5b43e2aac", // Your Bot ID
-          clientId: "0c96ddf8-22ce-42ef-8119-0a01b6731e51", // Your Client ID
+          botId: "6148b8d3-9347-47e7-9fca-d9cf9d80f313", // Your Bot ID
+          clientId: "b348486f-d411-4430-b1b9-46f281be8ea2", // Your Client ID
           configuration: {
             version: "v2",
             botName: "AI Assistant",
@@ -59,9 +59,9 @@ const BotpressChatbot = ({ authToken }: BotpressChatbotProps): JSX.Element => {
               "I am here to assist you and provide helpful information.",
             color: "#3276EA",
             variant: "solid",
-            headerVariant: "solid",
+            headerVariant: "glass",
             themeMode: "light",
-            fontFamily: "Lexend",
+            fontFamily: "inter",
             radius: 4,
             feedbackEnabled: true,
             footer: "[⚡ by Zenture]",
