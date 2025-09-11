@@ -7,12 +7,16 @@ export default function Navbar() {
     <nav className="bg-white/95 backdrop-blur-md border-b border-border/50 sticky top-0 z-50 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          {/* Logo */}
+         {/* Logo */}
           <div className="flex items-center space-x-2 ml-[-30px]" data-testid="logo">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-              <Leaf className="text-white text-lg" size={20} />
-            </div>
-            <span className="text-3xl font-bold text-foreground tracking-tight">Zenture</span>
+            <img
+              src="/images/logo1.jpeg"
+              alt="Zenture Logo"
+              className="w-12 h-12 object-contain"   // 🔥 adjust size only
+             />
+            <span className="text-3xl font-bold text-foreground tracking-tight">
+              Zenture
+            </span>
           </div>
 
           {/* Navigation Links */}
