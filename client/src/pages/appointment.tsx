@@ -42,13 +42,12 @@ const customCalendarStyles = `
 
 interface Counselor {
   id: number;
+  user_id: number;   
   name: string;
-  specialization: string;
+  specialty: string; 
   reviews: number;
   image: string;
-  counselor_profile_id: number;
 }
-
 interface Appointment {
   counselor: string;
   date: string;
@@ -220,7 +219,7 @@ const BookingPage: React.FC = () => {
                     <img src={c.image} alt={c.name} className="w-12 h-12 rounded-full" />
                     <div>
                       <p className="font-semibold">{c.name}</p>
-                      <p className="text-sm text-gray-600">Specialty: {c.specialization}</p>
+                      <p className="text-sm text-gray-600">Speciality: {c.specialty}</p>
                       <p className="text-sm text-yellow-600">⭐ {c.reviews} Reviews</p>
                     </div>
                   </div>
