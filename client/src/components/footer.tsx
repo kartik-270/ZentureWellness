@@ -1,4 +1,5 @@
 import { Facebook, Twitter, Linkedin } from "lucide-react";
+import { Link, useLocation } from "wouter";
 
 export default function Footer() {
   return (
@@ -7,37 +8,37 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
           {/* Footer Links */}
           <div className="flex flex-wrap justify-center md:justify-start items-center space-x-6 text-sm">
-            <a 
+            <Link 
               href="/about" 
               className="text-muted-foreground hover:text-primary transition-colors"
               data-testid="footer-about"
             >
               About Us
-            </a>
+            </Link>
             <span className="text-muted-foreground">|</span>
-            <a 
+            <Link 
               href="#" 
               className="text-muted-foreground hover:text-primary transition-colors"
               data-testid="footer-mission"
             >
               Our Mission
-            </a>
+            </Link>
             <span className="text-muted-foreground">|</span>
-            <a 
+            <Link
               href="#" 
               className="text-muted-foreground hover:text-primary transition-colors"
               data-testid="footer-privacy"
             >
               Privacy Policy
-            </a>
+            </Link>
             <span className="text-muted-foreground">|</span>
-            <a 
+            <Link
               href="#" 
               className="text-muted-foreground hover:text-primary transition-colors"
               data-testid="footer-terms"
             >
               Terms of Service
-            </a>
+            </Link>
           </div>
 
           {/* Language Options */}
@@ -53,27 +54,27 @@ export default function Footer() {
 
           {/* Social Icons */}
           <div className="flex items-center space-x-4" data-testid="social-icons">
-            <a 
+            <Link 
               href="#" 
               className="w-10 h-10 bg-slate-700 text-white rounded-full flex items-center justify-center hover:bg-slate-800 transition-colors"
               data-testid="social-facebook"
             >
               <Facebook size={16} />
-            </a>
-            <a 
+            </Link>
+            <Link
               href="#" 
               className="w-10 h-10 bg-slate-700 text-white rounded-full flex items-center justify-center hover:bg-slate-800 transition-colors"
               data-testid="social-twitter"
             >
               <Twitter size={16} />
-            </a>
-            <a 
+            </Link>
+            <Link
               href="#" 
               className="w-10 h-10 bg-slate-700 text-white rounded-full flex items-center justify-center hover:bg-slate-800 transition-colors"
               data-testid="social-linkedin"
             >
               <Linkedin size={16} />
-            </a>
+            </Link>
           </div>
         </div>
       </div>
