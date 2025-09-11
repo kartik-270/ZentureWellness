@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Leaf, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
-import {logo} from "../../../public/logo1.jpeg";
+import logo from "../../../public/logo1.jpeg";
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
@@ -50,11 +50,15 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <div className="flex items-center space-x-2 ml-[-30px]" data-testid="logo">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-              <Leaf className="text-white text-lg" size={20} />
-            </div>
-            <span className="text-3xl font-bold text-foreground tracking-tight">Zenture</span>
-          </div>
+  <img
+    src={logo}
+    alt={"Zenture Logo"}
+    className="w-12 h-12 object-contain"   // 🔥 adjust size only
+  />
+  <span className="text-3xl font-bold text-foreground tracking-tight">
+    Zenture
+  </span>
+</div>
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-10">

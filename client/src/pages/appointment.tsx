@@ -77,7 +77,7 @@ const BookingPage: React.FC = () => {
         return;
       }
       try {
-        const res = await fetch("http://localhost:5000/api/counselors", {
+        const res = await fetch("https://zenture-backend.onrender.com/api/counselors", {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
@@ -142,7 +142,7 @@ const BookingPage: React.FC = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/appointments", {
+      const res = await fetch("https://zenture-backend.onrender.com/api/appointments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
