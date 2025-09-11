@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { useLocation } from "wouter";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 
-// --- UI Components (assuming these are in a separate file or defined locally as in signup.tsx) ---
+// --- UI Components ---
 type ButtonProps = { children: React.ReactNode } & React.ComponentProps<'button'>;
 const Button = ({ children, ...props }: ButtonProps) => (
   <button
@@ -82,8 +84,13 @@ export default function Login() {
         throw new Error(data.msg || "Login failed. Please check your credentials.");
       }
 
-      // Login successful: Save token and redirect
+      // Save both the auth token and username to localStorage
       localStorage.setItem("authToken", data.access_token);
+      localStorage.setItem("username", data.username);
+      
+      // Trigger a storage event to update the Navbar in real-time
+      window.dispatchEvent(new Event("storage"));
+
       setSuccessMessage("Login successful! Redirecting...");
       setTimeout(() => {
         setLocation("/");
@@ -97,52 +104,56 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen gradient-bg flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <span className="text-4xl">🧠</span>
+    <>
+      <Navbar />
+      <div className="min-h-screen gradient-bg flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <span className="text-4xl">🧠</span>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
-        </div>
 
-        {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-center">{error}</div>}
-        {successMessage && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-center">{successMessage}</div>}
+          {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-center">{error}</div>}
+          {successMessage && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-center">{successMessage}</div>}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
-            <Input
-              id="username"
-              type="text"
-              placeholder="Your unique username"
-              value={formData.username}
-              onChange={handleInputChange}
-            />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                placeholder="Your unique username"
+                value={formData.username}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Your password"
+                value={formData.password}
+                onChange={handleInputChange}
+              />
+            </div>
+            <Button type="submit" disabled={isLoading || !formData.username || !formData.password}>
+              {isLoading ? "Signing In..." : "Sign In"}
+            </Button>
+          </form>
+          <div className="mt-8 text-center space-y-2">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{" "}
+              <Link href="/signup" className="text-blue-600 hover:underline font-medium">
+                Sign up
+              </Link>
+            </p>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Your password"
-              value={formData.password}
-              onChange={handleInputChange}
-            />
-          </div>
-          <Button type="submit" disabled={isLoading || !formData.username || !formData.password}>
-            {isLoading ? "Signing In..." : "Sign In"}
-          </Button>
-        </form>
-        <div className="mt-8 text-center space-y-2">
-          <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
-            <Link href="/signup" className="text-blue-600 hover:underline font-medium">
-              Sign up
-            </Link>
-          </p>
         </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 }

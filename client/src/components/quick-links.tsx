@@ -1,6 +1,14 @@
+"use client";
+
 import { BookOpen, Calendar, Heart, Bot } from "lucide-react";
-// import Link from 'next/link';
-export default function QuickLinks() {
+
+// ⚠️ Add the interface to define the component's props
+interface QuickLinksProps {
+  onChatTrigger: () => void;
+}
+
+// ⚠️ Accept the prop in the function signature
+export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
   return (
     <section className="py-4 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -11,24 +19,21 @@ export default function QuickLinks() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Psychoeducational Hub */}
           <div className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
-
-            <a className="block" href="/psychoeducational-hub"> {/* Using 'a' tag as a wrapper for styling */}
+            <a className="block" href="/psychoeducational-hub">
               <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/30 transition-colors">
                 <BookOpen className="text-primary text-xl group-hover:scale-110 transition-transform" size={24} />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">Psychoeducational Hub</h3>
               <p className="text-muted-foreground">Explore articles, videos & audio for a healthier mind</p>
-
-            </a></div>
-
-
-
+            </a>
+          </div>
 
           <div
             className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
             data-testid="card-book-session"
           >
-            {/* Book a Session */}<a className="block" href="/book-a-session">
+            {/* Book a Session */}
+            <a className="block" href="/book-appointment">
               <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/30 transition-colors">
                 <Calendar className="text-primary text-xl group-hover:scale-110 transition-transform" size={24} />
               </div>
@@ -36,23 +41,27 @@ export default function QuickLinks() {
               <p className="text-muted-foreground">Connect with a campus counselor</p>
             </a>
           </div>
+
           {/* Peer Support */}
           <div
             className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
             data-testid="card-peer-support"
-          ><a className="block" href="/peer-support">
-
+          >
+            <a className="block" href="/">
               <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/30 transition-colors">
                 <Heart className="text-primary text-xl group-hover:scale-110 transition-transform" size={24} />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">Peer Support</h3>
               <p className="text-muted-foreground">Share & connect with fellow students</p>
-            </a></div>
+            </a>
+          </div>
 
           {/* AI Chat Widget */}
           <div
-            className="bg-primary/10 p-6 rounded-xl border-2 border-primary/20 hover:bg-primary/15 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+            className="bg-primary/10 p-6 rounded-xl border-2 border-primary/20 hover:bg-primary/15 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer"
             data-testid="ai-chat-widget"
+            // Call the prop function directly
+            onClick={onChatTrigger}
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-foreground">Zenture Ai</h3>
@@ -63,7 +72,7 @@ export default function QuickLinks() {
               </div>
             </div>
             <div className="gradient-bg space-y-3">
-              <div className=" p-3 rounded-lg text-sm">
+              <div className="p-3 rounded-lg text-sm">
                 <div className="flex items-center space-x-2 mb-1">
                   <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                     <Bot size={14} className="text-white" />

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 
 // --- UI Components ---
 type ButtonProps = { children: React.ReactNode } & React.ComponentProps<'button'>;
@@ -76,18 +78,10 @@ export default function Signup() {
   const [error, setError] = useState<string | null>(null);
   const [apiMessage, setApiMessage] = useState<string | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null); // New state variable for username
+  const [username, setUsername] = useState<string | null>(null);
 
-  const tokenRef = useRef<string | null>(null); // useRef to avoid async state issues
+  const tokenRef = useRef<string | null>(null);
   const [, setLocation] = useLocation();
-
-  useEffect(() => {
-    const storedToken = localStorage.getItem("authToken");
-    if (storedToken) {
-      setAuthToken(storedToken);
-      tokenRef.current = storedToken;
-    }
-  }, []);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -147,7 +141,6 @@ export default function Signup() {
 
     setIsLoading(true);
     try {
-      // Verify & create account
       const createResponse = await fetch("https://zenture-backend.onrender.com/api/register/verify-and-create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -155,7 +148,6 @@ export default function Signup() {
       });
       const createData = await handleApiResponse(createResponse);
 
-      // Login to get token
       const loginResponse = await fetch("https://zenture-backend.onrender.com/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -165,8 +157,12 @@ export default function Signup() {
 
       setAuthToken(loginData.access_token);
       tokenRef.current = loginData.access_token;
+      
+      // Save both the auth token and username to localStorage
       localStorage.setItem("authToken", loginData.access_token);
-      setUsername(createData.username); // Store the username from the backend
+      localStorage.setItem("username", createData.username);
+      
+      setUsername(createData.username);
 
       setApiMessage("Account created! Just one more step to complete your profile.");
       setStep(3);
@@ -215,6 +211,10 @@ export default function Signup() {
       await handleApiResponse(response);
 
       setApiMessage("Signup complete! Redirecting you now...");
+      
+      // Notify the Navbar of the login status change before redirecting
+      window.dispatchEvent(new Event("storage"));
+      
       setTimeout(() => setLocation("/"), 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred while saving your profile.");
@@ -244,10 +244,14 @@ export default function Signup() {
   );
 
   // --- JSX ---
-  return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-8">
+  return (<>
+    <Navbar />
+    <div className="min-h-screen gradient-bg flex items-center justify-center px-4 py-8">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
+    <div className="w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+          <span className="text-4xl">🧠</span>
+          </div>
           <h2 className="text-2xl font-bold text-gray-900">Join Zenture</h2>
           <p className="text-gray-600 mt-2">Create your account in 3 simple steps.</p>
         </div>
@@ -261,13 +265,12 @@ export default function Signup() {
             Your username is: <strong className="font-bold">{username}</strong>. Please save it.
           </div>
         )}
-        
+        
         {/* --- Step 1 --- */}
         {step === 1 && (
           <div className="space-y-6">
             <h3 className="text-lg font-semibold text-center text-gray-800">Step 1: Verify Your Email</h3>
             <div>
-              <Label htmlFor="email">AKGEC Email Address</Label>
               <Input id="email" type="email" placeholder="your.email@akgec.ac.in" value={formData.email} onChange={e => handleInputChange("email", e.target.value)} />
             </div>
             <Button onClick={handleStep1Submit} disabled={isLoading || !formData.email}>{isLoading ? "Sending..." : "Send Verification Code"}</Button>
@@ -336,6 +339,9 @@ export default function Signup() {
           </p>
         </div>
       </div>
-    </div>
+      </div>
+      <Footer />
+
+</>
   );
 }

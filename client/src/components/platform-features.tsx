@@ -30,7 +30,7 @@ export default function PlatformFeatures() {
             <img 
               src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&h=800" 
               alt="Group of diverse college students" 
-              className="rounded-xl shadow-lg w-full h-64 object-cover" 
+              className="rounded-xl shadow-lg w-full h-[290px] object-cover" 
             />
           </div>
 
@@ -67,7 +67,7 @@ export default function PlatformFeatures() {
             {/* Chat Bot Info */}
             <div className="bg-primary text-white p-4 rounded-xl hover:bg-primary/90 transition-colors cursor-pointer" data-testid="chatbot-info">
               <div className="flex items-center space-x-2 mb-2">
-                <Bot size={20} />
+                <Bot size={22} />
                 <h4 className="font-medium">Chat with Mindy, your AI guide.</h4>
               </div>
               <p className="text-sm opacity-90">Hi there! Feeling overwhelmed? I'm here Wer of help. Just exploring.</p>

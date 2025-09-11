@@ -8,6 +8,7 @@ import Login from "@/pages/login";
 import Signup from "@/pages/signup";
 import NotFound from "@/pages/not-found";
 import PsychoeducationalHub from "@/pages/psychoeducationalhub";
+import BookingPage from "./pages/appointment";
 
 function Router() {
   return (
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
       <Route path="/psychoeducational-hub" component={PsychoeducationalHub} />
+      <Route path="/book-appointment" component={BookingPage} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -19,13 +19,13 @@ export default function HeroSection() {
               data-testid="hero-subtitle"
             >
               Positive mental health is helping people live happier, healthier and longer lives.
-            </p>
+            </p><a href="/" className="">
             <Button 
-              className="px-8 py-4 bg-slate-700 text-white rounded-full hover:bg-slate-800 transition-all transform hover:scale-105 font-semibold text-md shadow-lg"
+              className="px-8 my-7 bg-slate-700 text-white rounded-full hover:bg-slate-800 transition-all transform hover:scale-105 font-semibold text-md shadow-lg"
               data-testid="button-start-journey"
             >
               Start your Journey Today
-            </Button>
+            </Button></a>
           </div>
 
           {/* Right Illustration */}
