@@ -93,7 +93,7 @@ export default function Psychoeducational() {
       {/* Search and Filter Section */}
       <div className="max-w-6xl mx-auto mb-8">
         <div className="flex flex-col md:flex-row items-center justify-between">
-          <h2 className="text-2xl font-bold mb-4 md:mb-0">Featured & Trending</h2>
+          <h2 className="text-2xl font-bold mb-4 md:mb-0">PsychoEducational Hub</h2>
           <div className="flex space-x-2">
             {/* Filter buttons can be added here */}
           </div>
