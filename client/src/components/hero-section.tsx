@@ -35,7 +35,7 @@ export default function HeroSection() {
                 src={brain}
                 alt={"brain"} 
                 width={400}
-                height={400}
+                height={600}
                 className="w-[32vw] h-[33vh] rounded-lg  "
               />
             </div>
