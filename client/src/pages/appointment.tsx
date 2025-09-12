@@ -306,7 +306,7 @@ const BookingPage: React.FC = () => {
                   <div>
                     <p className="font-semibold text-lg">{selectedCounselorDetails?.name}</p>
                     <p className="text-sm text-gray-600">Specialty: {selectedCounselorDetails?.specialty}</p>
-                    <p className="text-sm text-yellow-600">⭐ {selectedCounselorDetails?.reviews} Reviews</p>
+                    {/* <p className="text-sm text-yellow-600">⭐ {selectedCounselorDetails?.reviews} Reviews</p> */}
                   </div>
                 </div>
 

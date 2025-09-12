@@ -31,14 +31,11 @@ interface BotpressConfig {
     startConversation?: boolean;
   };
 }
-
-// 3. Augment the global Window interface to make TypeScript aware of `window.botpress` and the new `window.botpressWebChat`.
 declare global {
   interface Window {
     botpress: {
       init: (config: BotpressConfig) => void;
     };
-    // Define a type for the exposed function
     showBotpressChat: () => void;
   }
 }
@@ -94,7 +91,6 @@ startConversation:true,
       }
     }
     
-    // ⚠️ CRITICAL CHANGE: Expose a function to show the chat
     window.showBotpressChat = () => {
         const botpressWebChat = (window as any).botpressWebChat;
         if (botpressWebChat && botpressWebChat.sendEvent) {
