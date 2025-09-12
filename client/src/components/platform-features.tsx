@@ -1,5 +1,5 @@
 import { Shield, HelpCircle, TrendingUp, Bot } from "lucide-react";
-
+import { Link } from "wouter";
 export default function PlatformFeatures() {
   return (
     <section className="py-16 bg-muted/30">
@@ -7,36 +7,33 @@ export default function PlatformFeatures() {
         <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-12" data-testid="platform-features-title">
           Platform Feature and Impacts
         </h2>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left Icons */}
           <div className="space-y-6">
-            <div className="text-center" data-testid="feature-confidential">
+            <Link href="/confidential"> <div className="text-center" data-testid="feature-confidential">
               <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Shield className="text-primary text-2xl" size={32} />
               </div>
               <h3 className="font-semibold text-foreground">Confidential & Safe</h3>
-            </div>
-            <div className="text-center" data-testid="feature-faqs">
+            </div></Link>
+            <Link href="\faq"><div className="text-center" data-testid="feature-faqs">
               <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3">
                 <HelpCircle className="text-primary text-2xl" size={32} />
               </div>
               <h3 className="font-semibold text-foreground">FAQs & Help</h3>
-            </div>
+            </div></Link>
           </div>
 
-          {/* Student Photo */}
           <div className="lg:col-span-2" data-testid="students-photo">
-            <img 
-              src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&h=800" 
-              alt="Group of diverse college students" 
-              className="rounded-xl shadow-lg w-full h-[290px] object-cover" 
+            <img
+              src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&h=800"
+              alt="Group of diverse college students"
+              className="rounded-xl shadow-lg w-full h-[290px] object-cover"
             />
           </div>
 
-          {/* Right Cards */}
           <div className="space-y-6">
-            {/* Analytics Card */}
+            {/*Analytics Card */}
             <div className="bg-card p-4 rounded-xl shadow-sm border border-border hover:shadow-md transition-shadow" data-testid="analytics-card">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-medium text-foreground">Understanding Students & Emotions</h4>
@@ -64,7 +61,6 @@ export default function PlatformFeatures() {
               </div>
             </div>
 
-            {/* Chat Bot Info */}
             <div className="bg-primary text-white p-4 rounded-xl hover:bg-primary/90 transition-colors cursor-pointer" data-testid="chatbot-info">
               <div className="flex items-center space-x-2 mb-2">
                 <Bot size={22} />

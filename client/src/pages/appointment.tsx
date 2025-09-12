@@ -6,7 +6,6 @@ import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import { MessageCircle, Video, PhoneCall, User } from "lucide-react";
 
-// You can add your own custom CSS to override styles
 const customCalendarStyles = `
   .react-calendar {
     border: 1px solid #e0e0e0;
@@ -137,7 +136,6 @@ const BookingPage: React.FC = () => {
       "Phone Call": "voice_call",
     };
     
-    // Format the date for the backend
     const formattedDate = selectedDate?.toISOString().split('T')[0];
     if (!formattedDate) {
         alert("Invalid date selected.");

@@ -90,17 +90,17 @@ export default function Psychoeducational() {
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6 relative">
-      {/* Search and Filter Section */}
+      {/*Search and Filter Section*/}
       <div className="max-w-6xl mx-auto mb-8">
         <div className="flex flex-col md:flex-row items-center justify-between">
           <h2 className="text-2xl font-bold mb-4 md:mb-0">PsychoEducational Hub</h2>
           <div className="flex space-x-2">
-            {/* Filter buttons can be added here */}
+            {/*Filter buttons can be added here*/}
           </div>
         </div>
       </div>
 
-      {/* Dynamic Content Grid */}
+      {/*Dynamic Content Grid*/}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
         {data.map((item, index) => (
           <div
@@ -125,7 +125,7 @@ export default function Psychoeducational() {
         ))}
       </div>
 
-      {/* Dynamic Modal */}
+      {/*Dynamic Modal*/}
       {isModalOpen && currentItem && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div
@@ -144,7 +144,6 @@ export default function Psychoeducational() {
             <h2 className="text-2xl font-bold mb-4">{currentItem.title}</h2>
             <p className="text-muted-foreground mb-4">{currentItem.description}</p>
 
-            {/* Conditional Rendering based on resource type */}
             {currentItem.type === "video" && (
               <div className="aspect-w-16 aspect-h-12">
                 <iframe

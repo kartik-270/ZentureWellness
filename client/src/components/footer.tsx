@@ -6,7 +6,6 @@ export default function Footer() {
     <footer className="bg-slate-100 py-12 border-t border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
-          {/* Footer Links */}
           <div className="flex flex-wrap justify-center md:justify-start items-center space-x-6 text-sm">
             <Link 
               href="/about" 
@@ -41,7 +40,6 @@ export default function Footer() {
             </Link>
           </div>
 
-          {/* Language Options */}
           <div className="flex items-center space-x-4 text-sm" data-testid="language-options">
             <span className="text-muted-foreground">Available In :</span>
             <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">English</a>
@@ -52,7 +50,6 @@ export default function Footer() {
             <span className="text-muted-foreground">|</span>
           </div>
 
-          {/* Social Icons */}
           <div className="flex items-center space-x-4" data-testid="social-icons">
             <Link 
               href="#" 

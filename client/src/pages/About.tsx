@@ -8,7 +8,6 @@ export default function About() {
       {/* Navbar */}
       <Navbar />
 
-      {/* Main Content */}
       <main className="flex-grow max-w-5xl mx-auto px-6 py-12 space-y-12 ">
         {/* Title Section */}
         <section className="text-center">

@@ -4,7 +4,6 @@ import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
 import { BookOpen, Scale, Heart } from 'lucide-react'; // Using relevant icons for tests
 
-// This page acts as a hub for all self-assessment tests
 export default function SelfAssessmentTests() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -18,7 +17,6 @@ export default function SelfAssessmentTests() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* PHQ-9 Test Card */}
           <Link href="/PHQ-9">
             <div className="bg-card p-6 rounded-xl shadow-lg border border-border hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
@@ -33,7 +31,6 @@ export default function SelfAssessmentTests() {
             </div>
           </Link>
 
-          {/* GAD-7 Test Card */}
           <Link href="/GAD-7">
             <div className="bg-card p-6 rounded-xl shadow-lg border border-border hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-green-200 transition-colors">
@@ -48,7 +45,6 @@ export default function SelfAssessmentTests() {
             </div>
           </Link>
           
-          {/* GHQ-12 Test Card */}
           <Link href="/GHQ-12">
             <div className="bg-card p-6 rounded-xl shadow-lg border border-border hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">

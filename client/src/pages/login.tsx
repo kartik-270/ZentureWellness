@@ -3,157 +3,152 @@ import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
-// --- UI Components ---
 type ButtonProps = { children: React.ReactNode } & React.ComponentProps<'button'>;
 const Button = ({ children, ...props }: ButtonProps) => (
-  <button
-    {...props}
-    className={`w-full py-3 px-4 inline-flex justify-center items-center gap-2 rounded-lg font-medium text-white transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-      props.disabled ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-    }`}
-  >
-    {children}
-  </button>
+    <button
+        {...props}
+        className={`w-full py-3 px-4 inline-flex justify-center items-center gap-2 rounded-lg font-medium text-white transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${props.disabled ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+            }`}
+    >
+        {children}
+    </button>
 );
 
 const Input = (props: React.ComponentProps<'input'>) => (
-  <input
-    {...props}
-    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-  />
+    <input
+        {...props}
+        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+    />
 );
 
 type LabelProps = { children: React.ReactNode } & React.ComponentProps<'label'>;
 const Label = ({ children, ...props }: LabelProps) => (
-  <label {...props} className="text-sm font-medium text-gray-700 block mb-2">
-    {children}
-  </label>
+    <label {...props} className="text-sm font-medium text-gray-700 block mb-2">
+        {children}
+    </label>
 );
 
 type LinkProps = { href: string; children: React.ReactNode } & React.ComponentProps<'a'>;
 const Link = ({ href, children, ...props }: LinkProps) => {
-  const [, setLocation] = useLocation();
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    setLocation(href);
-  };
-  return <a href={href} onClick={handleClick} {...props}>{children}</a>;
+    const [, setLocation] = useLocation();
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        setLocation(href);
+    };
+    return <a href={href} onClick={handleClick} {...props}>{children}</a>;
 };
 
 
-// --- Login Page Component ---
 export default function Login() {
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-  });
+    const [formData, setFormData] = useState({
+        username: "",
+        password: "",
+    });
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const [, setLocation] = useLocation();
+    const [, setLocation] = useLocation();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
-  };
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({ ...prev, [id]: value }));
+    };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccessMessage(null);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        setSuccessMessage(null);
 
-    if (!formData.username || !formData.password) {
-      setError("Please enter both username and password.");
-      return;
-    }
+        if (!formData.username || !formData.password) {
+            setError("Please enter both username and password.");
+            return;
+        }
 
-    setIsLoading(true);
+        setIsLoading(true);
 
-    try {
-      const response = await fetch("https://zenture-backend.onrender.com/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+        try {
+            const response = await fetch("https://zenture-backend.onrender.com/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData),
+            });
 
-      const data = await response.json();
+            const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.msg || "Login failed. Please check your credentials.");
-      }
+            if (!response.ok) {
+                throw new Error(data.msg || "Login failed. Please check your credentials.");
+            }
 
-      // Save both the auth token and username to localStorage
-      localStorage.setItem("authToken", data.access_token);
-      localStorage.setItem("username", data.username);
-      
-      // Trigger a storage event to update the Navbar in real-time
-      window.dispatchEvent(new Event("storage"));
+            localStorage.setItem("authToken", data.access_token);
+            localStorage.setItem("username", data.username);
 
-      setSuccessMessage("Login successful! Redirecting...");
-      setTimeout(() => {
-        setLocation("/");
-      }, 1500);
+            window.dispatchEvent(new Event("storage"));
 
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred during login.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+            setSuccessMessage("Login successful! Redirecting...");
+            setTimeout(() => {
+                setLocation("/");
+            }, 1500);
 
-  return (
-    <>
-      <Navbar />
-      <div className="min-h-screen gradient-bg flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <span className="text-4xl">🧠</span>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
-          </div>
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "An unknown error occurred during login.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-          {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-center">{error}</div>}
-          {successMessage && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-center">{successMessage}</div>}
+    return (
+        <>
+            <Navbar />
+            <div className="min-h-screen gradient-bg flex items-center justify-center px-4">
+                <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+                    <div className="text-center mb-8">
+                        <div className="w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                            <span className="text-4xl">🧠</span>
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
+                    </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="Your unique username"
-                value={formData.username}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Your password"
-                value={formData.password}
-                onChange={handleInputChange}
-              />
-            </div>
-            <Button type="submit" disabled={isLoading || !formData.username || !formData.password}>
-              {isLoading ? "Signing In..." : "Sign In"}
-            </Button>
-          </form>
-          <div className="mt-8 text-center space-y-2">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Link href="/signup" className="text-blue-600 hover:underline font-medium">
-                Sign up
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
-      <Footer />
-    </>
-  );
+                    {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-center">{error}</div>}
+                    {successMessage && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-center">{successMessage}</div>}
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="username">Username</Label>
+                            <Input
+                                id="username"
+                                type="text"
+                                placeholder="Your unique username"
+                                value={formData.username}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                placeholder="Your password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+                        <Button type="submit" disabled={isLoading || !formData.username || !formData.password}>
+                            {isLoading ? "Signing In..." : "Sign In"}
+                        </Button>
+                    </form>
+                    <div className="mt-8 text-center space-y-2">
+                        <p className="text-sm text-gray-600">
+                            Don't have an account?{" "}
+                            <Link href="/signup" className="text-blue-600 hover:underline font-medium">
+                                Sign up
+                            </Link>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <Footer />
+        </>
+    );
 }

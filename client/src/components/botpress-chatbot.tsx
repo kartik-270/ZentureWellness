@@ -3,13 +3,10 @@
 import Script from "next/script";
 import { useEffect, JSX } from "react";
 
-// 1. Define the props for the component, allowing it to accept the auth token.
 interface BotpressChatbotProps {
   authToken: string | null; // The token is a string, or null if the user is not logged in.
 }
 
-// 2. Define the TypeScript type for the Botpress configuration object.
-//    This includes the optional 'user' payload where we will place the JWT.
 interface BotpressConfig {
   botId: string;
   clientId: string;

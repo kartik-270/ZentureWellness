@@ -14,6 +14,9 @@ import PHQ9Test from "./pages/test1";
 import GAD7Test from "./pages/test2";
 import GHQ12Test from "./pages/test3";
 import SelfAssessmentTests from "./pages/self-asessment";
+import FAQ from "./pages/FAQ";
+import Community from "./pages/Community";
+import ConfidentialPage from "./pages/Confidential";
 function Router() {
   return (
     <Switch>
@@ -26,7 +29,10 @@ function Router() {
       <Route path="/PHQ-9" component={PHQ9Test} />
       <Route path="/GAD-7" component={GAD7Test} />
       <Route path="/GHQ-12" component={GHQ12Test} />
-      <Route path="/self-assessment-tests" component={SelfAssessmentTests} />
+      <Route path="/self-assessment-tests" component={SelfAssessmentTests} />\
+      <Route path="/faq" component={FAQ} />
+      <Route path="/community" component={Community} />
+      <Route path="/confidential" component={ConfidentialPage} />
       <Route component={NotFound} />
     </Switch>
   );
