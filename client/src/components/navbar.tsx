@@ -64,7 +64,7 @@ export default function Navbar() {
               className="text-foreground hover:text-primary transition-colors font-semibold text-lg"
               data-testid="nav-home"
             >
-              Homee
+              Homeee
             </Link>
             <Link
               href="/psychoeducational-hub"
