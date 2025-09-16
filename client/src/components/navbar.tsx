@@ -92,7 +92,7 @@ export default function Navbar() {
               className="text-muted-foreground hover:text-primary transition-colors font-semibold text-lg"
               data-testid="nav-community"
             >
-              Community
+              Communi
             </Link>
           </div>
 
