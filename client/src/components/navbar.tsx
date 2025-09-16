@@ -64,7 +64,7 @@ export default function Navbar() {
               className="text-foreground hover:text-primary transition-colors font-semibold text-lg"
               data-testid="nav-home"
             >
-              Homeee
+              Home
             </Link>
             <Link
               href="/psychoeducational-hub"
@@ -92,7 +92,7 @@ export default function Navbar() {
               className="text-muted-foreground hover:text-primary transition-colors font-semibold text-lg"
               data-testid="nav-community"
             >
-              Communi
+              Community
             </Link>
           </div>
 
