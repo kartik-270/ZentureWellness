@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-
+import { jwtDecode } from "jwt-decode";
 // --- UI Components ---
 type ButtonProps = { children: React.ReactNode } & React.ComponentProps<'button'>;
 const Button = ({ children, ...props }: ButtonProps) => (
@@ -14,6 +14,10 @@ const Button = ({ children, ...props }: ButtonProps) => (
         {children}
     </button>
 );
+interface TokenPayload {
+    sub: string;
+    role: string;
+}
 
 const Input = (props: React.ComponentProps<'input'>) => (
     <input
@@ -147,6 +151,7 @@ export default function Signup() {
             });
             const createData = await handleApiResponse(createResponse);
 
+            // Immediately log the new user in
             const loginResponse = await fetch("https://zenture-backend.onrender.com/api/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -161,9 +166,25 @@ export default function Signup() {
             localStorage.setItem("username", createData.username);
 
             setUsername(createData.username);
+            
+            // --- MODIFICATION START ---
+            const decodedToken = jwtDecode<TokenPayload>(loginData.access_token);
+            const userRole = decodedToken.role;
 
-            setApiMessage("Account created! Just one more step to complete your profile.");
-            setStep(3);
+            // If user is an admin, redirect to admin dashboard and skip step 3
+            if (userRole === 'admin') {
+                setApiMessage("Admin account verified! Redirecting to dashboard...");
+                window.dispatchEvent(new Event("storage")); // Notify navbar
+                setTimeout(() => {
+                    setLocation("/admin/dashboard");
+                }, 2000);
+            } else {
+                // Otherwise, proceed to the profile completion step for students
+                setApiMessage("Account created! Just one more step to complete your profile.");
+                setStep(3);
+            }
+            // --- MODIFICATION END ---
+            
         } catch (err) {
             setError(err instanceof Error ? err.message : "An unknown error occurred during account creation.");
         } finally {

@@ -17,6 +17,12 @@ import SelfAssessmentTests from "./pages/self-asessment";
 import FAQ from "./pages/FAQ";
 import Community from "./pages/Community";
 import ConfidentialPage from "./pages/Confidential";
+import DashBoardpage from "./pages/DashBoardpage";
+import AdminDashboard from "./pages/admin/dashboard";
+import CrisisEscalation from "./pages/admin/CrisisiEscalation";
+import CounselorAvailability from "./pages/admin/CounselorAvailability";
+import SettingsPage from "./pages/admin/Setting";
+import AdminRegister from "./pages/adminRegister";
 function Router() {
   return (
     <Switch>
@@ -33,6 +39,12 @@ function Router() {
       <Route path="/faq" component={FAQ} />
       <Route path="/community" component={Community} />
       <Route path="/confidential" component={ConfidentialPage} />
+      <Route path="/dashboard" component={DashBoardpage} />
+      <Route path="/admin/dashboard" component={AdminDashboard} />
+      <Route path="/admin/crisis-escalation" component={CrisisEscalation} />
+      <Route path="/admin/counselor-availability" component={CounselorAvailability} />
+      <Route path="/admin/settings" component={SettingsPage} />
+      <Route path="/admin/register" component={AdminRegister} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -2,6 +2,12 @@ import React, { useState } from "react";
 import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { jwtDecode } from "jwt-decode";
+
+interface TokenPayload {
+    sub?: string;
+    role?: string;
+}
 
 type ButtonProps = { children: React.ReactNode } & React.ComponentProps<'button'>;
 const Button = ({ children, ...props }: ButtonProps) => (
@@ -37,7 +43,6 @@ const Link = ({ href, children, ...props }: LinkProps) => {
     };
     return <a href={href} onClick={handleClick} {...props}>{children}</a>;
 };
-
 
 export default function Login() {
     const [formData, setFormData] = useState({
@@ -75,21 +80,47 @@ export default function Login() {
                 body: JSON.stringify(formData),
             });
 
+            // Defensive: check content-type before parsing JSON
+            const contentType = response.headers.get("content-type") || "";
+            if (!contentType.includes("application/json")) {
+                // read text to give useful debug info (first 300 chars)
+                const text = await response.text();
+                throw new Error(`Server returned non-JSON response (status ${response.status}): ${text.slice(0, 300)}`);
+            }
+
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.msg || "Login failed. Please check your credentials.");
+                // server returned a JSON error message
+                throw new Error(data.msg || `Login failed with status ${response.status}`);
             }
 
+            // Save token + username (keys match backend)
             localStorage.setItem("authToken", data.access_token);
             localStorage.setItem("username", data.username);
 
+            // notify other tabs/components
             window.dispatchEvent(new Event("storage"));
 
             setSuccessMessage("Login successful! Redirecting...");
+
+            // decode token safely to read role
+            let userRole = "";
+            try {
+                const decoded = jwtDecode<TokenPayload>(data.access_token);
+                userRole = decoded?.role || "";
+            } catch (err) {
+                console.warn("Could not decode token:", err);
+            }
+
+            // short delay so user can see success message (optional)
             setTimeout(() => {
-                setLocation("/");
-            }, 1500);
+                if (userRole === "admin") {
+                    setLocation("/admin/dashboard");
+                } else {
+                    setLocation("/");
+                }
+            }, 900);
 
         } catch (err) {
             setError(err instanceof Error ? err.message : "An unknown error occurred during login.");
