@@ -45,8 +45,8 @@ const BotpressChatbot = ({ authToken }: BotpressChatbotProps): JSX.Element => {
     const initializeBotpress = () => {
       if (window.botpress) {
         const config: BotpressConfig = {
-          botId: "6148b8d3-9347-47e7-9fca-d9cf9d80f313", // Your Bot ID
-          clientId: "b348486f-d411-4430-b1b9-46f281be8ea2", // Your Client ID
+          botId: "35a5203f-5952-4deb-b266-d6f036888765", 
+          clientId: "f1d0dea9-6b50-465b-962f-8b5e21b6fa34", 
           configuration: {
             version: "v2",
             botName: "AI Assistant",
