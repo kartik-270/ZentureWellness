@@ -29,6 +29,7 @@ interface BotpressConfig {
     footer: string;
     additionalStylesheetUrl?: string;
     startConversation?: boolean;
+    soundenabled?: boolean;
   };
 }
 declare global {
@@ -63,6 +64,7 @@ const BotpressChatbot = ({ authToken }: BotpressChatbotProps): JSX.Element => {
 startConversation:true,
             additionalStylesheetUrl:
               "https://files.bpcontent.cloud/2025/09/06/14/20250906140350-435CT55V.css",
+                soundenabled: true,
           },
         };
 
