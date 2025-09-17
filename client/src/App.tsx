@@ -23,6 +23,7 @@ import CrisisEscalation from "./pages/admin/CrisisiEscalation";
 import CounselorAvailability from "./pages/admin/CounselorAvailability";
 import SettingsPage from "./pages/admin/Setting";
 import AdminRegister from "./pages/adminRegister";
+import ForgotUsername from "./pages/ForgotUsename";
 function Router() {
   return (
     <Switch>
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/admin/counselor-availability" component={CounselorAvailability} />
       <Route path="/admin/settings" component={SettingsPage} />
       <Route path="/admin/register" component={AdminRegister} />
+      <Route path="/forgot-username" component={ForgotUsername} />
       <Route component={NotFound} />
     </Switch>
   );
