@@ -75,7 +75,7 @@ export default function HeroSection() {
 
           <div className="flex justify-center lg:justify-end">
             <div className="relative">
-              <img src={brain} alt="Mental Wellness" width={400} height={600} className="w-[32vw] h-[33vh] rounded-lg" />
+              <img src={brain} alt="Mental Wellness" width={400} height={600} className="w-[32vw] h-[38vh] rounded-lg" />
             </div>
           </div>
         </div>

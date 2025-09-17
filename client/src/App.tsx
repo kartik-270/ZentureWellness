@@ -24,6 +24,9 @@ import CounselorAvailability from "./pages/admin/CounselorAvailability";
 import SettingsPage from "./pages/admin/Setting";
 import AdminRegister from "./pages/adminRegister";
 import ForgotUsername from "./pages/ForgotUsename";
+import CounsellorDashboard from "./pages/counsellor/counsellor";
+import Chatbot from "./pages/Chatbot";
+import Resources from "./pages/admin/ResourceManagement";
 function Router() {
   return (
     <Switch>
@@ -47,6 +50,9 @@ function Router() {
       <Route path="/admin/settings" component={SettingsPage} />
       <Route path="/admin/register" component={AdminRegister} />
       <Route path="/forgot-username" component={ForgotUsername} />
+      <Route path="/counsellor/dashboard" component={CounsellorDashboard} />
+      <Route path="/chatbot" component={Chatbot} />
+      <Route path="/admin/resources" component={Resources} />
       <Route component={NotFound} />
     </Switch>
   );
