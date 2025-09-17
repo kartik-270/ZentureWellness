@@ -24,7 +24,7 @@ import CounselorAvailability from "./pages/admin/CounselorAvailability";
 import SettingsPage from "./pages/admin/Setting";
 import AdminRegister from "./pages/adminRegister";
 import ForgotUsername from "./pages/ForgotUsename";
-import CounsellorDashboard from "./pages/counsellor/counsellor";
+import CounsellorDashboard from "./pages/counsellor/counsellor.tsx";
 import Chatbot from "./pages/Chatbot";
 import Resources from "./pages/admin/ResourceManagement";
 function Router() {
