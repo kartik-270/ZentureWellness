@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { jwtDecode } from "jwt-decode";
+import { apiConfig } from "@/lib/config";
 // --- UI Components ---
 type ButtonProps = { children: React.ReactNode } & React.ComponentProps<'button'>;
 const Button = ({ children, ...props }: ButtonProps) => (
@@ -108,14 +109,14 @@ export default function Signup() {
     const handleStep1Submit = async () => {
         setError(null);
         setApiMessage(null);
-        if (!formData.email || !/\S+@akgec\.ac\.in/.test(formData.email)) {
-            setError("Please enter a valid AKGEC email address.");
-            return;
-        }
+        // if (!formData.email || !/\S+@akgec\.ac\.in/.test(formData.email)) {
+        //     setError("Please enter a valid AKGEC email address.");
+        //     return;
+        // }
 
         setIsLoading(true);
         try {
-            const response = await fetch("https://zenture-backend.onrender.com/api/register/start", {
+            const response = await fetch(`${apiConfig.baseUrl}/register/start`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: formData.email }),
@@ -144,7 +145,7 @@ export default function Signup() {
 
         setIsLoading(true);
         try {
-            const createResponse = await fetch("https://zenture-backend.onrender.com/api/register/verify-and-create", {
+            const createResponse = await fetch(`${apiConfig.baseUrl}/register/verify-and-create`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: formData.email, otp: formData.otp, password: formData.password }),
@@ -152,7 +153,7 @@ export default function Signup() {
             const createData = await handleApiResponse(createResponse);
 
             // Immediately log the new user in
-            const loginResponse = await fetch("https://zenture-backend.onrender.com/api/login", {
+            const loginResponse = await fetch(`${apiConfig.baseUrl}/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username: createData.username, password: formData.password }),
@@ -212,7 +213,7 @@ export default function Signup() {
 
         setIsLoading(true);
         try {
-            const response = await fetch("https://zenture-backend.onrender.com/api/register/complete-profile", {
+            const response = await fetch(`${apiConfig.baseUrl}/register/complete-profile`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

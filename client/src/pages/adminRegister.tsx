@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { apiConfig } from "@/lib/config";
 
 const AdminRegister: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -9,7 +10,7 @@ const AdminRegister: React.FC = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch("https://zenture-backend.onrender.com/api/admin/register", {
+      const response = await fetch(`${apiConfig.baseUrl}/admin/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

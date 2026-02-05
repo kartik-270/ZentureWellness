@@ -14,8 +14,11 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+import { useLocation } from "wouter";
+
 export default function CounsellorSidebar() {
   const [open, setOpen] = useState(true);
+  const [location] = useLocation();
 
   const navItems = [
     { label: "Dashboard", icon: LayoutDashboard, href: "/counsellor/dashboard" },
@@ -28,9 +31,8 @@ export default function CounsellorSidebar() {
 
   return (
     <aside
-      className={`flex-shrink-0 ${
-        open ? "w-64" : "w-20"
-      } transition-all duration-300 bg-gray-900 text-white min-h-screen flex flex-col`}
+      className={`flex-shrink-0 ${open ? "w-64" : "w-20"
+        } transition-all duration-300 bg-gray-900 text-white min-h-screen flex flex-col`}
     >
       {/* Header */}
       <div className="p-4 flex items-center justify-between">
@@ -50,7 +52,7 @@ export default function CounsellorSidebar() {
       <nav className="mt-6 flex-1 space-y-2">
         {navItems.map((item, index) => {
           const Icon = item.icon;
-          const isActive = item.href === "/counsellor/dashboard"; // Example for active state
+          const isActive = location === item.href;
 
           return (
             <a

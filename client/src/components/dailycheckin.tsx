@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 // Assuming you have a 'Button' component from a UI library like shadcn/ui
-import { Button } from "@/components/ui/button"; 
+import { Button } from "@/components/ui/button";
+import { apiConfig } from "@/lib/config";
 
 type Mood = {
     name: "Excellent" | "Good" | "Okay" | "Stressed" | "Sad";
@@ -36,7 +37,7 @@ export default function DailyCheckIn() {
                     return; // Not logged in, can't check status
                 }
 
-                const response = await fetch("https://zenture-backend.onrender.com/api/mood-checkin/today-status", {
+                const response = await fetch(`${apiConfig.baseUrl}/mood-checkin/today-status`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
 
@@ -62,7 +63,7 @@ export default function DailyCheckIn() {
             const token = localStorage.getItem("authToken");
             if (!token) throw new Error("User not authenticated");
 
-            const response = await fetch("https://zenture-backend.onrender.com/api/mood-checkin", {
+            const response = await fetch(`${apiConfig.baseUrl}/mood-checkin`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -70,14 +71,14 @@ export default function DailyCheckIn() {
                 },
                 body: JSON.stringify({ mood: mood.name }), // Date is handled by the backend
             });
-            
+
             if (response.status === 409) { // 409 Conflict: Already checked in
-                 setHasCheckedInToday(true);
-                 return;
+                setHasCheckedInToday(true);
+                return;
             }
 
             if (!response.ok) throw new Error("Failed to save mood");
-            
+
             // On successful submission, update the UI
             setHasCheckedInToday(true);
 
@@ -106,7 +107,7 @@ export default function DailyCheckIn() {
                 <h2 className="text-2xl font-bold text-foreground mb-4">
                     {hasCheckedInToday ? "Thanks for checking in!" : "How are you feeling today?"}
                 </h2>
-                
+
                 {hasCheckedInToday ? (
                     <div className="animate-fade-in">
                         <p className="text-muted-foreground">You've completed your check-in for today. Come back tomorrow!</p>

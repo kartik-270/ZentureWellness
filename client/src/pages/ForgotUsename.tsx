@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { apiConfig } from "@/lib/config";
 
 type ButtonProps = { children: React.ReactNode } & React.ComponentProps<'button'>;
 const Button = ({ children, ...props }: ButtonProps) => (
@@ -58,7 +59,7 @@ const ForgotUsername = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch("https://zenture-backend.onrender.com/api/forgot-username", {
+            const response = await fetch(`${apiConfig.baseUrl}/forgot-username`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email }),

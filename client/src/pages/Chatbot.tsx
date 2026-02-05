@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid'; 
+import { v4 as uuidv4 } from 'uuid';
+import { apiConfig } from "@/lib/config";
 
 // Define the types for a message
 interface Message {
@@ -32,7 +33,7 @@ const Chatbot: React.FC = () => {
           ...(token && { 'Authorization': `Bearer ${token}` }),
         };
 
-        const response = await fetch('https://zenture-backend.onrender.com/api/chatbot', {
+        const response = await fetch(`${apiConfig.baseUrl}/chatbot`, {
           method: 'POST',
           headers: headers,
           body: JSON.stringify({
@@ -42,10 +43,10 @@ const Chatbot: React.FC = () => {
         });
 
         const data = await response.json();
-        
+
         // Update the conversation ID if it's new
         if (data.conversation_id && !conversationId) {
-            setConversationId(data.conversation_id);
+          setConversationId(data.conversation_id);
         }
 
         // Update state with bot's response and follow-up questions
@@ -85,8 +86,8 @@ const Chatbot: React.FC = () => {
         </div>
         <div className="flex items-center space-x-2">
           {/* New chat button */}
-          <button 
-            onClick={handleStartNewChat} 
+          <button
+            onClick={handleStartNewChat}
             className="text-gray-500 text-lg hover:text-gray-800 transition-colors"
           >
             ↻
@@ -100,11 +101,10 @@ const Chatbot: React.FC = () => {
         {messages.map((msg, index) => (
           <div key={index} className="flex flex-col">
             <div
-              className={`p-3 rounded-xl max-w-[80%] break-words ${
-                msg.isUser
-                  ? 'self-end bg-blue-500 text-white rounded-br-none'
-                  : 'self-start bg-gray-200 text-gray-800 rounded-bl-none'
-              }`}
+              className={`p-3 rounded-xl max-w-[80%] break-words ${msg.isUser
+                ? 'self-end bg-blue-500 text-white rounded-br-none'
+                : 'self-start bg-gray-200 text-gray-800 rounded-bl-none'
+                }`}
             >
               {msg.text}
             </div>
