@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiConfig } from "@/lib/config";
 
 interface Counselor {
   id: number;
@@ -16,7 +17,7 @@ export default function BookingStep1() {
   const [selectedCounselor, setSelectedCounselor] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/counselors") // 🔗 backend route
+    fetch(`${apiConfig.baseUrl.replace('/api', '')}/counselors`) // 🔗 backend route
       .then((res) => res.json())
       .then((data) => setCounselors(data));
   }, []);
@@ -27,7 +28,7 @@ export default function BookingStep1() {
       return;
     }
 
-    const res = await fetch("http://localhost:5000/book/step1", {
+    const res = await fetch(`${apiConfig.baseUrl.replace('/api', '')}/book/step1`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ date: selectedDate, counselor_id: selectedCounselor }),
@@ -61,9 +62,8 @@ export default function BookingStep1() {
             {counselors.map((counselor) => (
               <li
                 key={counselor.id}
-                className={`p-3 bg-white rounded shadow hover:bg-blue-100 cursor-pointer ${
-                  selectedCounselor === counselor.user_id ? "border-2 border-blue-500" : ""
-                }`}
+                className={`p-3 bg-white rounded shadow hover:bg-blue-100 cursor-pointer ${selectedCounselor === counselor.user_id ? "border-2 border-blue-500" : ""
+                  }`}
                 onClick={() => setSelectedCounselor(counselor.user_id)}
               >
                 {counselor.name} ({counselor.specialization})
