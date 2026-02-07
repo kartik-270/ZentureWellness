@@ -1,143 +1,109 @@
 import React, { useState, useEffect } from "react";
-import { Leaf, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import logo from "../../../public/logo1.jpeg";
+
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
   useEffect(() => {
-    const updateLoginStatus = () => {
-      const token = localStorage.getItem("authToken");
-      const storedUsername = localStorage.getItem("username");
+    const token = localStorage.getItem("authToken");
+    const storedUsername = localStorage.getItem("username");
 
-      if (token && storedUsername) {
-        setIsLoggedIn(true);
-        setUsername(storedUsername);
-      } else {
-        setIsLoggedIn(false);
-        setUsername("");
-      }
-    };
-
-    updateLoginStatus();
-
-    window.addEventListener("storage", updateLoginStatus);
-
-    return () => {
-      window.removeEventListener("storage", updateLoginStatus);
-    };
+    if (token && storedUsername) {
+      setIsLoggedIn(true);
+      setUsername(storedUsername);
+    }
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("username");
-
+    localStorage.clear();
     setIsLoggedIn(false);
     setUsername("");
-
     setLocation("/login");
   };
 
+  const navLink = (href: string, label: string) => {
+    const isActive = location === href;
+    return (
+      <Link
+        href={href}
+        className={`relative text-lg font-medium transition-colors
+        ${isActive ? "text-primary" : "text-muted-foreground hover:text-primary"}
+        `}
+      >
+        {label}
+        {isActive && (
+          <span className="absolute -bottom-2 left-0 h-[2px] w-full bg-primary rounded-full" />
+        )}
+      </Link>
+    );
+  };
+
   return (
-    <nav className="bg-white/95 backdrop-blur-md border-b border-border/50 sticky top-0 z-50 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/*Logo*/}
-          <div className="flex items-center space-x-2 ml-[-30px]" data-testid="logo">
-            <img
-              src={logo}
-              alt={"Zenture Logo"}
-              className="w-12 h-12 object-contain"   // 🔥 adjust size only
-            />
-            <span className="text-3xl font-bold text-foreground tracking-tight">
+    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-border shadow-sm">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex h-20 items-center justify-between">
+          
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="Zenture" className="w-11 h-11 object-contain" />
+            <span className="text-2xl font-bold  from-blue-600 tracking-tight">
               Zenture
             </span>
           </div>
 
-          {/*Navigation Links*/}
-          <div className="hidden md:flex items-center space-x-10">
-            <Link
-              href="/"
-              className="text-foreground hover:text-primary transition-colors font-semibold text-lg"
-              data-testid="nav-home"
-            >
-              Home
-            </Link>
-            <Link
-              href="/psychoeducational-hub"
-              className="text-muted-foreground hover:text-primary transition-colors font-semibold text-lg"
-              data-testid="nav-resources"
-            >
-              Resources
-            </Link>
-            <Link
-              href="/about"
-              className="text-muted-foreground hover:text-primary transition-colors font-semibold text-lg"
-              data-testid="nav-about"
-            >
-              About Us
-            </Link>
-            <Link
-              href="/faq"
-              className="text-muted-foreground hover:text-primary transition-colors font-semibold text-lg"
-              data-testid="nav-faq"
-            >
-              FAQ
-            </Link>
-            <Link
-              href="/community"
-              className="text-muted-foreground hover:text-primary transition-colors font-semibold text-lg"
-              data-testid="nav-community"
-            >
-              Community
-            </Link>
+          {/* Desktop Links */}
+          <div className="hidden md:flex items-center gap-10">
+            {navLink("/", "Home")}
+            {navLink("/psychoeducational-hub", "Resources")}
+            {navLink("/about", "About")}
+            {navLink("/faq", "FAQ")}
+            {navLink("/community", "Community")}
           </div>
 
-          {/*Auth Buttons*/}
-          <div className="flex items-center space-x-4">
+          {/* Auth */}
+          <div className="hidden md:flex items-center gap-4">
             {isLoggedIn ? (
               <>
-                <span className="text-lg font-semibold text-gray-700">Hi, {username}</span>
+                <span className="text-sm font-medium text-muted-foreground">
+                  Hi, {username}
+                </span>
                 <Button
                   onClick={handleLogout}
-                  className="px-8 py-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all transform hover:scale-105 font-semibold text-lg shadow-md"
-                  data-testid="button-logout"
+                  className="rounded-full px-6 bg-red-500 hover:bg-red-600"
                 >
-                  Log Out
+                  Log out
                 </Button>
               </>
             ) : (
               <>
                 <Link href="/login">
                   <Button
-                    className="px-8 py-3 bg-slate-700 text-white rounded-full hover:bg-slate-800 transition-all transform hover:scale-105 font-semibold text-lg shadow-md"
-                    data-testid="button-login"
+                    variant="outline"
+                    className="rounded-full px-6"
                   >
-                    Log In
+                    Log in
                   </Button>
                 </Link>
+
                 <Link href="/signup">
                   <Button
-                    className="px-8 py-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-all transform hover:scale-105 font-semibold text-lg shadow-md"
-                    data-testid="button-signup"
+                    className="rounded-full px-7 bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md hover:shadow-lg hover:scale-105 transition"
                   >
-                    Sign Up
+                    Sign up
                   </Button>
                 </Link>
               </>
             )}
           </div>
 
+          {/* Mobile */}
           <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="p-2 rounded-md text-foreground hover:bg-accent"
-              data-testid="button-mobile-menu"
-            >
+            <Button variant="ghost" size="icon">
               <Menu size={22} />
             </Button>
           </div>

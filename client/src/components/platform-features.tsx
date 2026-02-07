@@ -2,7 +2,7 @@ import { Shield, HelpCircle, TrendingUp, Bot } from "lucide-react";
 import { Link } from "wouter";
 export default function PlatformFeatures() {
   return (
-    <section className="py-16 bg-muted/30">
+    <section className="py-14 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-12" data-testid="platform-features-title">
           Platform Feature and Impacts
@@ -61,7 +61,7 @@ export default function PlatformFeatures() {
               </div>
             </div>
 
-            <div className="bg-primary text-white p-4 rounded-xl hover:bg-primary/90 transition-colors cursor-pointer" data-testid="chatbot-info">
+            <div className="bg-primary bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-4 rounded-xl hover:bg-primary/90 transition-colors cursor-pointer" data-testid="chatbot-info">
               <div className="flex items-center space-x-2 mb-2">
                 <Bot size={22} />
                 <h4 className="font-medium">Chat with Mindy, your AI guide.</h4>
