@@ -199,11 +199,7 @@ This project is for educational and academic purposes.
 
 ---
 
-## 👨‍💻 Author
 
-**Prince Berlin**
-B.Tech CSE
-Passionate about Full Stack Development & Real-world problem solving.
 
 ---
 
