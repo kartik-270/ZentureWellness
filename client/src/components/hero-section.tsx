@@ -34,7 +34,8 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="gradient-bg py-8 lg:py-8">
+    <section className="bg-gradient-to-r from-blue-300 via-cyan-100 to-blue-50 py-12 lg:py-16">
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">

@@ -51,7 +51,7 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <img src={logo} alt="Zenture" className="w-11 h-11 object-contain" />
-            <span className="text-2xl font-bold  from-blue-600 tracking-tight">
+            <span className="text-2xl font-bold tracking-tight">
               Zenture
             </span>
           </div>
