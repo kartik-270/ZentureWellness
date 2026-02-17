@@ -66,11 +66,7 @@ function Router() {
       <Route path="/admin/settings" component={SettingsPage} />
       <Route path="/admin/register" component={AdminRegister} />
       <Route path="/forgot-username" component={ForgotUsername} />
-      import Schedule from "./pages/counsellor/Schedule";
-      import Clients from "./pages/counsellor/Clients";
-      import Messages from "./pages/counsellor/Messages";
-      import CounselorResources from "./pages/counsellor/Resources";
-      import Settings from "./pages/counsellor/Settings";
+      
 
       // ... Inside Router switch ...
       <Route path="/counsellor/dashboard" component={CounsellorDashboard} />

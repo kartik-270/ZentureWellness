@@ -34,7 +34,8 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="gradient-bg py-8 lg:py-8">
+    <section className="bg-gradient-to-r from-blue-300 via-cyan-100 to-blue-50 py-12 lg:py-16">
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
@@ -65,7 +66,7 @@ export default function HeroSection() {
                   Positive mental health is helping people live happier, healthier and longer lives.
                 </p>
                 <a href="/signup">
-                  <Button className="px-8 my-7 bg-slate-700 text-white rounded-full hover:bg-slate-800 transition-all transform hover:scale-105 font-semibold text-md shadow-lg">
+                  <Button className="px-8 my-7 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md hover:shadow-lg hover:scale-105 transition">
                     Start your Journey Today
                   </Button>
                 </a>
@@ -74,10 +75,24 @@ export default function HeroSection() {
           </div>
 
           <div className="flex justify-center lg:justify-end">
-            <div className="relative">
-              <img src={brain} alt="Mental Wellness" width={400} height={600} className="w-[32vw] h-[38vh] rounded-lg" />
-            </div>
-          </div>
+  <div className="relative group">
+    <img
+      src={brain}
+      alt="Mental Wellness"
+      width={400}
+      height={600}
+      className="
+        w-[32vw] h-[38vh] rounded-lg
+        transition-all duration-500 ease-in-out
+        group-hover:scale-105
+        group-hover:brightness-110
+        group-hover:contrast-110
+        group-hover:drop-shadow-[0_10px_30px_rgba(59,130,246,0.4)]
+      "
+    />
+  </div>
+</div>
+
         </div>
       </div>
     </section>

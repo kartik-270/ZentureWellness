@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiConfig } from "@/lib/config";
 
 export default function BookingStep2() {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export default function BookingStep2() {
 
     const { date, counselor_id } = JSON.parse(step1Data);
 
-    const res = await fetch("http://localhost:5000/book/step2", {
+    const res = await fetch(`${apiConfig.baseUrl.replace('/api', '')}/book/step2`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -40,9 +41,8 @@ export default function BookingStep2() {
             {["Message", "Video Call", "Personal Meeting", "Phone Call"].map((m) => (
               <button
                 key={m}
-                className={`p-4 rounded shadow ${
-                  mode === m ? "bg-blue-200" : "bg-white"
-                }`}
+                className={`p-4 rounded shadow ${mode === m ? "bg-blue-200" : "bg-white"
+                  }`}
                 onClick={() => setMode(m)}
               >
                 {m}
