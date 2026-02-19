@@ -116,13 +116,7 @@ export default function Login() {
 
             // short delay so user can see success message (optional)
             setTimeout(() => {
-                if (userRole === "admin") {
-                    setLocation("/admin/dashboard");
-                } else if (userRole === "counselor") {
-                    setLocation("/counsellor/dashboard");
-                } else {
-                    setLocation("/");
-                }
+                setLocation("/");
             }, 900);
 
         } catch (err) {
@@ -159,7 +153,12 @@ export default function Login() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <div className="flex justify-between items-center">
+                                <Label htmlFor="password">Password</Label>
+                                <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                                    Forgot Password?
+                                </Link>
+                            </div>
                             <Input
                                 id="password"
                                 type="password"

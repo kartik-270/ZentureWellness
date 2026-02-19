@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { 
-  Settings, 
-  Users, 
-  Shield, 
-  CreditCard, 
-  RefreshCcw, 
+import {
+  Settings,
+  Users,
+  Shield,
+  CreditCard,
+  RefreshCcw,
   Puzzle,
-  Home, 
-  AlertTriangle, 
-  Stethoscope, 
-  BookOpen, 
-  BarChart2,
-  LogOut,
+  X,
+  Lock
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import AdminLayout from "../../components/AdminLayout";
 
 const SettingsPage: React.FC = () => {
   const [username, setUsername] = useState("Admin");
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+  });
+  const { toast } = useToast();
 
   useEffect(() => {
     // Retrieve username from local storage, as in the main dashboard.
@@ -25,143 +30,172 @@ const SettingsPage: React.FC = () => {
     }
   }, []);
 
-  const handleLogout = () => {
-    // Clear authentication data and redirect to login
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("username");
-    window.location.href = "/login";
+  const handleComingSoon = (feature: string) => {
+    toast({
+      title: "Coming Soon",
+      description: `${feature} is not yet available in this version.`,
+    });
+  };
+
+  const handleChangePassword = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+    // In a real app, you would make an API call here
+    toast({
+      title: "Password Updated",
+      description: "Your password has been changed successfully.",
+    });
+    setIsPasswordModalOpen(false);
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar - Reusing the dashboard's design */}
-      <aside className="w-66 bg-gray-900 text-gray-100 p-6 flex flex-col justify-between">
-        <nav className="space-y-6">
-          <h1 className="text-2xl font-bold text-white mb-8">Zenture Admin</h1>
-          <a href="/admin/dashboard" className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-800 transition-colors">
-            <Home size={22} />
-            <span>Dashboard Home</span>
-          </a>
-          <a href="/admin/students" className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-800 transition-colors">
-            <Users size={22} />
-            <span>Student Directory</span>
-          </a>
-          <a href="/admin/crisis-escalation" className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-800 transition-colors">
-            <AlertTriangle size={22} />
-            <span>Crisis & Escalation</span>
-          </a>
-          <a href="/admin/counselor-availability" className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-800 transition-colors">
-            <Stethoscope size={22} />
-            <span>Counselor Availability</span>
-          </a>
-          <a href="/admin/resources" className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-800 transition-colors">
-            <BookOpen size={22} />
-            <span>Resource Management</span>
-          </a>
-          <a href="/admin/reports" className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-800 transition-colors">
-            <BarChart2 size={22} />
-            <span>Reporting & Analytics</span>
-          </a>
-          {/* Active link for the current page */}
-          <a href="/admin/settings" className="flex items-center space-x-4 p-2 rounded-lg bg-gray-800 text-blue-400">
-            <Settings size={22} />
-            <span className="font-semibold">Settings</span>
-          </a>
-        </nav>
-        <button
-          onClick={handleLogout}
-          className="flex items-center space-x-4 p-2 rounded-lg text-red-400 hover:bg-gray-800 transition-colors w-full"
+    <AdminLayout
+      title="System Settings"
+      icon={<Settings className="text-blue-500" />}
+      username={username}
+    >
+      {/* Settings Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          onClick={() => handleComingSoon("General Settings")}
+          className="cursor-pointer bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col items-start border border-gray-100"
         >
-          <LogOut size={22} />
-          <span>Logout</span>
-        </button>
-      </aside>
+          <div className="p-3 bg-blue-50 rounded-lg mb-4">
+            <Settings className="text-blue-600" size={24} />
+          </div>
+          <h3 className="font-bold text-gray-800 text-xl">General</h3>
+          <p className="text-sm text-gray-500 mt-1">Site preferences, notifications, accessibility</p>
+        </div>
 
-      {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto space-y-8">
-        {/* Header - Consistent with the dashboard layout */}
-        <header className="flex justify-between items-center pb-4 border-b border-gray-300 mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-            <Settings className="text-blue-500" size={32} />
-            System Settings
-          </h1>
-          <div className="flex items-center space-x-3">
-            <span className="text-lg text-gray-600">
-              Welcome, <span className="font-semibold text-gray-900">{username}</span>!
-            </span>
-            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-              {username.charAt(0).toUpperCase()}
+        <div
+          onClick={() => handleComingSoon("User Management")}
+          className="cursor-pointer bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col items-start border border-gray-100"
+        >
+          <div className="p-3 bg-indigo-50 rounded-lg mb-4">
+            <Users className="text-indigo-600" size={24} />
+          </div>
+          <h3 className="font-bold text-gray-800 text-xl">User Management</h3>
+          <p className="text-sm text-gray-500 mt-1">Roles, permissions, and passwords</p>
+        </div>
+
+        <div
+          onClick={() => handleComingSoon("Admin Accounts")}
+          className="cursor-pointer bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col items-start border border-gray-100"
+        >
+          <div className="p-3 bg-green-50 rounded-lg mb-4">
+            <Shield className="text-green-600" size={24} />
+          </div>
+          <h3 className="font-bold text-gray-800 text-xl">Admin Accounts</h3>
+          <p className="text-sm text-gray-500 mt-1">Audit logs, 2FA, access control</p>
+        </div>
+
+        <div
+          onClick={() => handleComingSoon("Subscriptions & Billing")}
+          className="cursor-pointer bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col items-start border border-gray-100"
+        >
+          <div className="p-3 bg-yellow-50 rounded-lg mb-4">
+            <CreditCard className="text-yellow-600" size={24} />
+          </div>
+          <h3 className="font-bold text-gray-800 text-xl">Subscriptions & Billing</h3>
+          <p className="text-sm text-gray-500 mt-1">Billing info and plan management</p>
+        </div>
+
+        <div
+          onClick={() => handleComingSoon("System Updates")}
+          className="cursor-pointer bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col items-start border border-gray-100"
+        >
+          <div className="p-3 bg-purple-50 rounded-lg mb-4">
+            <RefreshCcw className="text-purple-600" size={24} />
+          </div>
+          <h3 className="font-bold text-gray-800 text-xl">System Updates</h3>
+          <p className="text-sm text-gray-500 mt-1">Version control, backup & restore</p>
+        </div>
+
+        <div
+          onClick={() => handleComingSoon("Integrations")}
+          className="cursor-pointer bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col items-start border border-gray-100"
+        >
+          <div className="p-3 bg-pink-50 rounded-lg mb-4">
+            <Puzzle className="text-pink-600" size={24} />
+          </div>
+          <h3 className="font-bold text-gray-800 text-xl">Integrations</h3>
+          <p className="text-sm text-gray-500 mt-1">Third-party tools and API keys</p>
+        </div>
+
+        <div
+          onClick={() => setIsPasswordModalOpen(true)}
+          className="cursor-pointer bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col items-start border border-gray-100"
+        >
+          <div className="p-3 bg-red-50 rounded-lg mb-4">
+            <Lock className="text-red-600" size={24} />
+          </div>
+          <h3 className="font-bold text-gray-800 text-xl">Security</h3>
+          <p className="text-sm text-gray-500 mt-1">Change password and security settings</p>
+        </div>
+      </div>
+
+      {/* Password Change Modal */}
+      {isPasswordModalOpen && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                <Lock size={20} /> Change Password
+              </h3>
+              <button
+                onClick={() => setIsPasswordModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                <input
+                  type="password"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Enter current password"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                <input
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Enter new password"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                <input
+                  type="password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Confirm new password"
+                />
+              </div>
+              <button
+                onClick={handleChangePassword}
+                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 font-medium"
+              >
+                Update Password
+              </button>
             </div>
           </div>
-        </header>
-
-        {/* Settings Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <a
-            href="/admin/settings/general"
-            className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col items-start"
-          >
-            <Settings className="mb-3 text-blue-600" size={32} />
-            <h3 className="font-bold text-gray-800 text-xl">General</h3>
-            <p className="text-sm text-gray-500 mt-1">Site preferences, notifications, accessibility</p>
-          </a>
-
-          <a
-            href="/admin/settings/user-management"
-            className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col items-start"
-          >
-            <Users className="mb-3 text-blue-600" size={32} />
-            <h3 className="font-bold text-gray-800 text-xl">User Management</h3>
-            <p className="text-sm text-gray-500 mt-1">Roles, permissions, and passwords</p>
-          </a>
-
-          <a
-            href="/admin/settings/admin-accounts"
-            className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col items-start"
-          >
-            <Shield className="mb-3 text-blue-600" size={32} />
-            <h3 className="font-bold text-gray-800 text-xl">Admin Accounts</h3>
-            <p className="text-sm text-gray-500 mt-1">Audit logs, 2FA, access control</p>
-          </a>
-
-          <a
-            href="/admin/settings/subscriptions-billing"
-            className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col items-start"
-          >
-            <CreditCard className="mb-3 text-blue-600" size={32} />
-            <h3 className="font-bold text-gray-800 text-xl">Subscriptions & Billing</h3>
-            <p className="text-sm text-gray-500 mt-1">Billing info and plan management</p>
-          </a>
-
-          <a
-            href="/admin/settings/system-updates"
-            className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col items-start"
-          >
-            <RefreshCcw className="mb-3 text-blue-600" size={32} />
-            <h3 className="font-bold text-gray-800 text-xl">System Updates</h3>
-            <p className="text-sm text-gray-500 mt-1">Version control, backup & restore</p>
-          </a>
-
-          <a
-            href="/admin/settings/integrations"
-            className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col items-start"
-          >
-            <Puzzle className="mb-3 text-blue-600" size={32} />
-            <h3 className="font-bold text-gray-800 text-xl">Integrations</h3>
-            <p className="text-sm text-gray-500 mt-1">Third-party tools and API keys</p>
-          </a>
-
-          <a
-            href="/admin/settings/security"
-            className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl hover:ring-2 hover:ring-blue-500 transition-all duration-300 flex flex-col items-start"
-          >
-            <Shield className="mb-3 text-blue-600" size={32} />
-            <h3 className="font-bold text-gray-800 text-xl">Security</h3>
-            <p className="text-sm text-gray-500 mt-1">Data privacy and session management</p>
-          </a>
         </div>
-      </main>
-    </div>
+      )}
+    </AdminLayout>
   );
 };
 
