@@ -96,13 +96,13 @@ export default function HeroSection() {
           </div>
 
           <div className="flex justify-center lg:justify-end">
-            <div className="relative group">
-              <img
-                src={brain}
-                alt="Mental Wellness"
-                width={400}
-                height={600}
-                className="
+  <div className="relative group">
+    <img
+      src={brain}
+      alt="Mental Wellness"
+      width={400}
+      height={600}
+      className="
         w-[32vw] h-[38vh] rounded-lg
         transition-all duration-500 ease-in-out
         group-hover:scale-105
@@ -110,9 +110,9 @@ export default function HeroSection() {
         group-hover:contrast-110
         group-hover:drop-shadow-[0_10px_30px_rgba(59,130,246,0.4)]
       "
-              />
-            </div>
-          </div>
+    />
+  </div>
+</div>
 
         </div>
       </div>

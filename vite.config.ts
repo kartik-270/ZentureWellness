@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => ({
     proxy: {
       "/api": {
         // Local Flask backend in dev
-        target: "http://127.0.0.1:5000",
+        target: "https://zenture-backend.onrender.com/api/",
         changeOrigin: true,
         secure: false,
       },

@@ -48,7 +48,7 @@ export default function CounsellorSidebar() {
       {/* Header */}
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="logo" className="w-8 h-8 rounded-full" />
+          <img src="brain_1757354497739.jpg" alt="logo" className="w-8 h-8" />
           {open && <span className="font-bold text-lg">Zenture</span>}
         </div>
         <button
