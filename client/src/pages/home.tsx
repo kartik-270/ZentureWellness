@@ -6,7 +6,8 @@ import HeroSection from "@/components/hero-section";
 import QuickLinks from "@/components/quick-links";
 import PlatformFeatures from "@/components/platform-features";
 import Footer from "@/components/footer";
-import BotpressChatbot from '@/components/botpress-chatbot';
+import AiChatBubble from '@/components/AiChatBubble';
+// import BotpressChatbot from '@/components/botpress-chatbot';
 
 declare global {
   interface Window {
@@ -56,25 +57,26 @@ export default function Home() {
   };
 
   return (<>
-      <Navbar />
+    <Navbar />
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      
+
       {isChatOpen && (
         <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
           aria-hidden="true"
         />
       )}
-      
+
       <div className="relative z-10">
         <HeroSection />
         <QuickLinks onChatTrigger={handleChatTrigger} />
         <PlatformFeatures />
         <Footer />
       </div>
-      
-      
-      <BotpressChatbot authToken={authToken} />
+
+      {/* Replaced Botpress with local AI Chat Bubble */}
+      <AiChatBubble />
+      {/* <BotpressChatbot authToken={authToken} /> */}
     </div></>
   );
 }

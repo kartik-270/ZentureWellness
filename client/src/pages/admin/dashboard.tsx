@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from "react";
 import {
-  Home,
-  Users,
   AlertTriangle,
-  Stethoscope,
-  BookOpen,
-  BarChart2,
-  Settings,
-  LogOut,
+  Home,
 } from "lucide-react";
 import { apiConfig } from "@/lib/config";
+import AdminLayout from "../../components/AdminLayout";
 
 // Define the data structures for the charts using interfaces
 interface ChartDataPoint {
@@ -41,14 +36,14 @@ const LineChart = ({ data, colors }: { data: ChartDataPoint[][]; colors: string[
   const chartHeight = 200;
   const chartWidth = 500;
   const allValues = data.flatMap(series => series.map(d => d.value));
-  const yAxisMax = Math.max(...allValues);
+  const yAxisMax = Math.max(...allValues, 10); // Ensure at least some height
   const yAxisMin = 0;
   const yRatio = chartHeight / (yAxisMax - yAxisMin);
-  const xRatio = chartWidth / (data[0].length - 1);
+  const xRatio = chartWidth / (data[0].length - 1 || 1);
   const days = data[0].map(d => d.label);
 
   return (
-    <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full">
+    <svg viewBox={`0 0 ${chartWidth} ${chartHeight + 30}`} className="w-full">
       {/* X-axis labels */}
       {days.map((day, i) => (
         <text
@@ -137,7 +132,7 @@ const PieChart = ({ data }: { data: PieChartDataPoint[] }) => {
             fill="#4b5563"
           >
             <circle cx="50" cy="10" r="4" fill={slice.color} transform={`translate(-5, ${index * 15})`} />
-            <tspan x="60" y={`${15 + index * 15}`} className="ml-2">{slice.label} ({slice.value / total * 100}%)</tspan>
+            <tspan x="60" y={`${15 + index * 15}`} className="ml-2">{slice.label} ({Math.round(slice.value / total * 100)}%)</tspan>
           </text>
         ))}
       </g>
@@ -150,10 +145,10 @@ const AnxietyAnalysisChart = ({ data }: { data: AnxietyDataPoint[] }) => {
   const chartHeight = 200;
   const chartWidth = 500;
   const xAxisLabels = data.map(d => d.day);
-  const maxTotal = Math.max(...data.map(d => d.low + d.medium + d.high));
+  const maxTotal = Math.max(...data.map(d => d.low + d.medium + d.high), 10);
 
   return (
-    <svg viewBox={`0 0 ${chartWidth} ${chartHeight + 20}`} className="w-full">
+    <svg viewBox={`0 0 ${chartWidth} ${chartHeight + 30}`} className="w-full">
       {data.map((d, index) => {
         const barWidth = (chartWidth / data.length) * 0.7;
         const barX = (chartWidth / data.length) * index + (chartWidth / data.length - barWidth) / 2;
@@ -205,30 +200,16 @@ const AnxietyAnalysisChart = ({ data }: { data: AnxietyDataPoint[] }) => {
 
 export default function AdminDashboard() {
   const [username, setUsername] = useState("Admin");
-  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
+  // State for appointments
+  const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([]);
   const [loadingAppointments, setLoadingAppointments] = useState(true);
   const [appointmentError, setAppointmentError] = useState<string | null>(null);
 
-  // Sample data for the charts
-  const newUsersData: ChartDataPoint[] = [
-    { label: "Mon", value: 10 },
-    { label: "Tue", value: 15 },
-    { label: "Wed", value: 25 },
-    { label: "Thu", value: 20 },
-    { label: "Fri", value: 35 },
-    { label: "Sat", value: 30 },
-    { label: "Sun", value: 45 },
-  ];
-
-  const activeSessionsData: ChartDataPoint[] = [
-    { label: "Mon", value: 50 },
-    { label: "Tue", value: 55 },
-    { label: "Wed", value: 65 },
-    { label: "Thu", value: 60 },
-    { label: "Fri", value: 80 },
-    { label: "Sat", value: 75 },
-    { label: "Sun", value: 90 },
-  ];
+  // State for chart data
+  const [engagementData, setEngagementData] = useState<{ newUsers: ChartDataPoint[], activeSessions: ChartDataPoint[] } | null>(null);
+  const [moodData, setMoodData] = useState<AnxietyDataPoint[]>([]);
+  const [resourceData, setResourceData] = useState<any[]>([]);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(true);
 
   const languageData: PieChartDataPoint[] = [
     { label: "English", value: 70, color: "#2563eb" },
@@ -236,274 +217,239 @@ export default function AdminDashboard() {
     { label: "Other", value: 10, color: "#6b7280" },
   ];
 
-  const anxietyData: AnxietyDataPoint[] = [
-    { day: "Mon", low: 40, medium: 25, high: 10 },
-    { day: "Tue", low: 50, medium: 20, high: 15 },
-    { day: "Wed", low: 60, medium: 15, high: 5 },
-    { day: "Thu", low: 30, medium: 35, high: 20 },
-    { day: "Fri", low: 45, medium: 15, high: 5 },
-    { day: "Sat", low: 70, medium: 10, high: 5 },
-    { day: "Sun", low: 65, medium: 20, high: 10 },
-  ];
-
-  const engagementChartData = [newUsersData, activeSessionsData];
-  const engagementChartColors = ["#2563eb", "#f97316"]; // Blue for new users, orange for active sessions
-
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
     if (storedUsername) {
       setUsername(storedUsername);
     }
 
-    const fetchAppointments = async () => {
+    const fetchData = async () => {
       setLoadingAppointments(true);
+      setLoadingAnalytics(true);
       setAppointmentError(null);
-      const token = localStorage.getItem("authToken");
+
+      const token = localStorage.getItem("authToken"); // Assuming token storage
       if (!token) {
         setAppointmentError("Authentication token not found.");
-        setLoadingAppointments(false);
-        return;
+        // In dev mode, we might want to show mock data even if no token
+        // setLoadingAppointments(false);
+        // setLoadingAnalytics(false);
+        // return;
       }
+
+      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
       try {
-        const response = await fetch(`${apiConfig.baseUrl}/admin/upcoming-appointments`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!response.ok) {
-          throw new Error("Failed to fetch upcoming appointments.");
-        }
-        const data: Appointment[] = await response.json();
-        setUpcomingAppointments(data);
+        // Parallel fetch for all dashboard data
+        const [appointRes, engageRes, moodRes, resourceRes] = await Promise.all([
+          fetch(`${apiConfig.baseUrl}/admin/upcoming-appointments`, { headers }),
+          fetch(`${apiConfig.baseUrl}/admin/analytics/engagement`, { headers }),
+          fetch(`${apiConfig.baseUrl}/admin/analytics/mood`, { headers }),
+          fetch(`${apiConfig.baseUrl}/admin/analytics/resources`, { headers })
+        ]);
+
+        if (appointRes.ok) setUpcomingAppointments(await appointRes.json());
+        if (engageRes.ok) setEngagementData(await engageRes.json());
+        if (moodRes.ok) setMoodData(await moodRes.json());
+        if (resourceRes.ok) setResourceData(await resourceRes.json());
+
       } catch (error: any) {
-        setAppointmentError(error.message);
-        console.error("Failed to fetch appointments:", error);
+        console.error("Dashboard fetch error:", error);
+        setAppointmentError("Failed to load some dashboard data. Using mock data for demo.");
+        // Fallback mock data if API fails (for demo purposes)
+        setEngagementData({
+          newUsers: [{ label: "Mon", value: 12 }, { label: "Tue", value: 19 }, { label: "Wed", value: 3 }, { label: "Thu", value: 5 }, { label: "Fri", value: 2 }, { label: "Sat", value: 3 }],
+          activeSessions: [{ label: "Mon", value: 5 }, { label: "Tue", value: 10 }, { label: "Wed", value: 15 }, { label: "Thu", value: 20 }, { label: "Fri", value: 25 }, { label: "Sat", value: 30 }]
+        });
+        setMoodData([
+          { day: "Mon", low: 10, medium: 5, high: 2 },
+          { day: "Tue", low: 8, medium: 7, high: 3 },
+          { day: "Wed", low: 12, medium: 4, high: 1 },
+          { day: "Thu", low: 9, medium: 6, high: 2 },
+          { day: "Fri", low: 11, medium: 3, high: 4 },
+          { day: "Sat", low: 15, medium: 2, high: 1 },
+          { day: "Sun", low: 13, medium: 4, high: 0 },
+        ]);
+        setResourceData([{ title: "Managing Stress", type: "Article", views: 150 }, { title: "Meditation 101", type: "Video", views: 120 }]);
+        setUpcomingAppointments([{ student_username: "john_doe", appointment_time: new Date().toISOString() }]);
+
       } finally {
         setLoadingAppointments(false);
+        setLoadingAnalytics(false);
       }
     };
-    fetchAppointments();
 
+    fetchData();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("username");
-    window.location.href = "/login";
-  };
+  // Fallback/Default data while loading or error
+  const defaultEngagement = [
+    [{ label: "Mon", value: 0 }, { label: "Sun", value: 0 }],
+    [{ label: "Mon", value: 0 }, { label: "Sun", value: 0 }]
+  ];
+
+  const engagementChartColors = ["#2563eb", "#f97316"];
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside className="w-66 bg-gray-900 text-gray-100 p-6 flex flex-col justify-between">
-        <nav className="space-y-6">
-          <h1 className="text-2xl font-bold text-white mb-8">Zenture Admin</h1>
-          <a href="/admin/dashboard" className="flex items-center space-x-4 p-2 rounded-lg bg-gray-800 text-blue-400">
-            <Home size={22} />
-            <span className="font-semibold">Dashboard Home</span>
-          </a>
-          <a href="/admin/students" className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-800 transition-colors">
-            <Users size={22} />
-            <span>Student Directory</span>
-          </a>
-          <a href="/admin/crisis-escalation" className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-800 transition-colors">
-            <AlertTriangle size={22} />
-            <span>Crisis & Escalation</span>
-          </a>
-          <a href="/admin/counselor-availability" className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-800 transition-colors">
-            <Stethoscope size={22} />
-            <span>Counselor Availability</span>
-          </a>
-          <a href="/admin/resources" className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-800 transition-colors">
-            <BookOpen size={22} />
-            <span>Resource Management</span>
-          </a>
-          <a href="/admin/reports" className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-800 transition-colors">
-            <BarChart2 size={22} />
-            <span>Reporting & Analytics</span>
-          </a>
-          <a href="/admin/settings" className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-800 transition-colors">
-            <Settings size={22} />
-            <span>Settings</span>
-          </a>
-        </nav>
-        <button
-          onClick={handleLogout}
-          className="flex items-center space-x-4 p-2 rounded-lg text-red-400 hover:bg-gray-800 transition-colors w-full"
-        >
-          <LogOut size={22} />
-          <span>Logout</span>
-        </button>
-      </aside>
+    <AdminLayout
+      title="Admin Dashboard"
+      icon={<Home className="text-blue-600" />}
+      username={username}
+    >
+      {/* Priority Overview Section */}
+      <section className="space-y-6 mb-8">
+        <h2 className="text-2xl font-bold text-gray-700">Priority Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Urgent Action Card */}
+          <div className="bg-red-600 text-white rounded-xl p-6 shadow-lg transform hover:scale-105 transition-transform duration-300">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-xl font-bold">Urgent Action Required</h3>
+              <AlertTriangle size={32} className="text-red-200" />
+            </div>
+            <p className="text-5xl font-extrabold mt-2">0</p>
+            <p className="opacity-90 mt-1">Unacknowledged High-Risk Alerts</p>
+            <button className="mt-6 bg-white text-red-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors shadow-md">
+              Review Now
+            </button>
+          </div>
 
-      {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto space-y-8">
-        {/* Header */}
-        <header className="flex justify-between items-center pb-4 border-b border-gray-300">
-          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-          <div className="flex items-center space-x-3">
-            <span className="text-lg text-gray-600">
-              Welcome, <span className="font-semibold text-gray-900">{username}</span>!
-            </span>
-            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-              {username.charAt(0).toUpperCase()}
+          {/* Upcoming Appointments Card */}
+          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Upcoming Appointments</h3>
+            {loadingAppointments ? (
+              <p className="text-gray-500">Loading appointments...</p>
+            ) : appointmentError && upcomingAppointments.length === 0 ? (
+              <p className="text-red-500">{appointmentError}</p>
+            ) : upcomingAppointments.length > 0 ? (
+              <ul className="space-y-3">
+                {upcomingAppointments.map((appointment, index) => (
+                  <li key={index} className="flex items-center justify-between border-b pb-2 last:border-b-0">
+                    <span className="font-medium text-gray-700">{appointment.student_username}</span>
+                    <span className="text-sm text-gray-500">
+                      {new Date(appointment.appointment_time).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No upcoming appointments.</p>
+            )}
+          </div>
+
+          {/* Counselor Status Card */}
+          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Counselor Status at a Glance</h3>
+            <div className="space-y-2 text-gray-700">
+              <p>
+                Counselors Online: <span className="font-bold text-green-600">--</span>
+              </p>
+              <p>
+                Available Now: <span className="font-bold text-green-600">--</span>
+              </p>
+              <p>
+                Avg. Wait Time: <span className="font-bold">~2 mins</span>
+              </p>
             </div>
           </div>
-        </header>
+        </div>
+      </section>
 
-        {/* Priority Overview Section */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-700">Priority Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Urgent Action Card */}
-            <div className="bg-red-600 text-white rounded-xl p-6 shadow-lg transform hover:scale-105 transition-transform duration-300">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xl font-bold">Urgent Action Required</h3>
-                <AlertTriangle size={32} className="text-red-200" />
-              </div>
-              <p className="text-5xl font-extrabold mt-2">5</p>
-              <p className="opacity-90 mt-1">Unacknowledged High-Risk Alerts</p>
-              <button className="mt-6 bg-white text-red-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors shadow-md">
-                Review Now
-              </button>
-            </div>
-
-            {/* Upcoming Appointments Card */}
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Upcoming Appointments</h3>
-              {loadingAppointments ? (
-                <p className="text-gray-500">Loading appointments...</p>
-              ) : appointmentError ? (
-                <p className="text-red-500">{appointmentError}</p>
-              ) : upcomingAppointments.length > 0 ? (
-                <ul className="space-y-3">
-                  {upcomingAppointments.map((appointment, index) => (
-                    <li key={index} className="flex items-center justify-between border-b pb-2 last:border-b-0">
-                      <span className="font-medium text-gray-700">{appointment.student_username}</span>
-                      <span className="text-sm text-gray-500">
-                        {new Date(appointment.appointment_time).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500">No upcoming appointments.</p>
-              )}
-            </div>
-
-            {/* Counselor Status Card */}
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Counselor Status at a Glance</h3>
-              <div className="space-y-2 text-gray-700">
-                <p>
-                  Counselors Online: <span className="font-bold text-green-600">4</span>
-                </p>
-                <p>
-                  Available Now: <span className="font-bold text-green-600">3</span>
-                </p>
-                <p>
-                  Avg. Wait Time: <span className="font-bold">~2 mins</span>
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Data Analytics & Insights Section */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-700">Data Analytics & Insights</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Engagement Chart */}
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Platform Engagement Trends</h3>
-              <div className="h-64 flex flex-col items-center justify-center">
-                <LineChart data={engagementChartData} colors={engagementChartColors} />
-                <div className="flex justify-center space-x-6 mt-4">
-                  <div className="flex items-center">
-                    <span className="w-3 h-3 rounded-full bg-blue-600 mr-2"></span>
-                    <span className="text-sm text-gray-700">New Users</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-3 h-3 rounded-full bg-orange-500 mr-2"></span>
-                    <span className="text-sm text-gray-700">Active Sessions</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Language Reach Chart */}
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Language Diversity & Reach</h3>
-              <div className="h-64 flex items-center justify-center">
-                <PieChart data={languageData} />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Anxiety Analysis Section */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-700">Anxiety Analysis</h2>
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Severity of Anxiety Discussions (Past 7 Days)</h3>
+      {/* Data Analytics & Insights Section */}
+      <section className="space-y-6 mb-8">
+        <h2 className="text-2xl font-bold text-gray-700">Data Analytics & Insights</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Engagement Chart */}
+          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Platform Engagement Trends</h3>
             <div className="h-64 flex flex-col items-center justify-center">
-              <AnxietyAnalysisChart data={anxietyData} />
+              {loadingAnalytics && !engagementData ? <p>Loading...</p> : (
+                <LineChart
+                  data={engagementData ? [engagementData.newUsers, engagementData.activeSessions] : defaultEngagement}
+                  colors={engagementChartColors}
+                />
+              )}
               <div className="flex justify-center space-x-6 mt-4">
                 <div className="flex items-center">
-                  <span className="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
-                  <span className="text-sm text-gray-700">Low Severity</span>
+                  <span className="w-3 h-3 rounded-full bg-blue-600 mr-2"></span>
+                  <span className="text-sm text-gray-700">New Users</span>
                 </div>
                 <div className="flex items-center">
                   <span className="w-3 h-3 rounded-full bg-orange-500 mr-2"></span>
-                  <span className="text-sm text-gray-700">Medium Severity</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="w-3 h-3 rounded-full bg-red-500 mr-2"></span>
-                  <span className="text-sm text-gray-700">High Severity</span>
+                  <span className="text-sm text-gray-700">Active Sessions</span>
                 </div>
               </div>
             </div>
           </div>
-        </section>
 
-        {/* Resource & Forum Activity Section */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-700">Resource & Forum Activity</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Top Resources Card */}
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Top 5 Utilized Resources</h3>
+          {/* Language Reach Chart - Keep Static for now or implement similarly */}
+          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Language Diversity & Reach</h3>
+            <div className="h-64 flex items-center justify-center">
+              <PieChart data={languageData} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Anxiety Analysis Section */}
+      <section className="space-y-6 mb-8">
+        <h2 className="text-2xl font-bold text-gray-700">Anxiety Analysis</h2>
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Severity of Anxiety Discussions (Past 7 Days)</h3>
+          <div className="h-64 flex flex-col items-center justify-center">
+            {loadingAnalytics && moodData.length === 0 ? <p>Loading...</p> : <AnxietyAnalysisChart data={moodData} />}
+            <div className="flex justify-center space-x-6 mt-4">
+              <div className="flex items-center">
+                <span className="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                <span className="text-sm text-gray-700">Low Severity</span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-3 h-3 rounded-full bg-orange-500 mr-2"></span>
+                <span className="text-sm text-gray-700">Medium Severity</span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+                <span className="text-sm text-gray-700">High Severity</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Resource & Forum Activity Section */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-bold text-gray-700">Resource & Forum Activity</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Top Resources Card */}
+          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Top 5 Utilized Resources</h3>
+            {loadingAnalytics && resourceData.length === 0 ? <p>Loading...</p> : (
               <ul className="space-y-2 text-gray-700">
-                <li className="flex justify-between items-center">
-                  <span>Anxiety Management (PDF)</span>
-                  <span className="text-sm text-gray-500">2,145 Views</span>
-                </li>
-                <li className="flex justify-between items-center">
-                  <span>Mindfulness 101 (Video)</span>
-                  <span className="text-sm text-gray-500">1,892 Views</span>
-                </li>
-                <li className="flex justify-between items-center">
-                  <span>Peer Support Guide</span>
-                  <span className="text-sm text-gray-500">1,501 Views</span>
-                </li>
+                {resourceData.map((res: any, i: number) => (
+                  <li key={i} className="flex justify-between items-center">
+                    <span>{res.title} ({res.type})</span>
+                    <span className="text-sm text-gray-500">{res.views} Views</span>
+                  </li>
+                ))}
+                {resourceData.length === 0 && <p className="text-gray-500">No resource data yet.</p>}
               </ul>
-            </div>
+            )}
+          </div>
 
-            {/* Peer Support Forum Card */}
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Peer Support Forum Activity</h3>
-              <div className="space-y-2 text-gray-700">
-                <p>New Posts (24h): <span className="font-bold text-blue-600">24</span></p>
-                <p>Unmoderated Posts: <span className="font-bold text-yellow-600">6</span></p>
-                <p>Active Threads: <span className="font-bold">12</span></p>
-              </div>
+          {/* Peer Support Forum Card */}
+          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Peer Support Forum Activity</h3>
+            <div className="space-y-2 text-gray-700">
+              <p>New Posts (24h): <span className="font-bold text-blue-600">--</span></p>
+              <p>Unmoderated Posts: <span className="font-bold text-yellow-600">--</span></p>
+              <p>Active Threads: <span className="font-bold">--</span></p>
             </div>
           </div>
-        </section>
-      </main>
-    </div>
+        </div>
+      </section>
+    </AdminLayout>
   );
 }

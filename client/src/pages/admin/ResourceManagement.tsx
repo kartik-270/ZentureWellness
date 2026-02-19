@@ -1,350 +1,381 @@
-"use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+// Resource Management Page
 import {
-  FileText,
-  Video,
-  Link as LinkIcon,
-  Plus,
-  Trash2,
-  X,
-  Home,
-  Users,
-  AlertTriangle,
-  Stethoscope,
   BookOpen,
-  BarChart2,
-  Settings,
-  LogOut,
+  Plus,
+  Search,
   CheckCircle,
   XCircle,
-  Upload
+  Edit2,
+  Trash2,
+  X,
+  FileText,
+  Video,
+  Link as LinkIcon
 } from "lucide-react";
 import { apiConfig } from "@/lib/config";
 import { useToast } from "@/hooks/use-toast";
+import AdminLayout from "../../components/AdminLayout";
 
-type Resource = {
+interface Resource {
   id: number;
   title: string;
   type: string;
   status: string;
   author: string;
   date: string;
-  url?: string;
   description?: string;
-};
+  url?: string;
+  content?: string;
+}
 
-// Simplified Sidebar Component integrated into the same file
-const CounsellorSidebar = () => {
-  // ... (Use existing logic or keep simplified)
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("username");
-    window.location.href = "/login";
-  };
-
-  return (
-    <aside className="w-66 bg-gray-900 text-gray-100 p-6 flex flex-col justify-between">
-      <nav className="space-y-6">
-        <h1 className="text-2xl font-bold text-white mb-8">Zenture Admin</h1>
-        <a href="/admin/dashboard" className="flex items-center space-x-4 p-2 rounded-lg hover:bg-gray-800 transition-colors">
-          <Home size={22} />
-          <span>Dashboard Home</span>
-        </a>
-        <a href="/admin/resources" className="flex items-center space-x-4 p-2 rounded-lg bg-gray-800 text-blue-400">
-          <BookOpen size={22} />
-          <span className="font-semibold">Resource Management</span>
-        </a>
-        {/* ... other links simplified for brevity if needed, or keep complete list ... */}
-      </nav>
-      <button onClick={handleLogout} className="flex items-center space-x-4 p-2 rounded-lg text-red-400 hover:bg-gray-800 transition-colors w-full">
-        <LogOut size={22} />
-        <span>Logout</span>
-      </button>
-    </aside>
-  );
-};
-
-export default function Resources() {
+const ResourceManagement: React.FC = () => {
+  const [username, setUsername] = useState("Admin"); // Keep username state for passing to AdminLayout
   const [resources, setResources] = useState<Resource[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newResource, setNewResource] = useState({
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentResourceId, setCurrentResourceId] = useState<number | null>(null);
+
+  const [formData, setFormData] = useState({
     title: "",
     description: "",
-    type: "article", // article, video, audio
-    content: "", // text content for articles
-    file: null as File | null,
-    link: "" // external link fallback
+    type: "article",
+    url: "",
+    content: ""
   });
-  const [uploading, setUploading] = useState(false);
+
   const { toast } = useToast();
-  const [username, setUsername] = useState("Admin");
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
-    if (storedUsername) setUsername(storedUsername);
+    if (storedUsername) {
+      setUsername(storedUsername);
+    }
     fetchResources();
   }, []);
 
   const fetchResources = async () => {
     try {
       const token = localStorage.getItem("authToken");
-      const res = await fetch(`${apiConfig.baseUrl}/api/admin/resources`, {
+      const res = await fetch(`${apiConfig.baseUrl}/admin/resources`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
         const data = await res.json();
         setResources(data);
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error("Failed to fetch resources", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const updateStatus = async (id: number, status: string) => {
+  const handleStatusChange = async (id: number, newStatus: string) => {
     try {
       const token = localStorage.getItem("authToken");
-      const res = await fetch(`${apiConfig.baseUrl}/api/admin/resource/${id}/status`, {
-        method: 'PUT',
+      const res = await fetch(`${apiConfig.baseUrl}/admin/resource/${id}/status`, {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status: newStatus })
       });
+
       if (res.ok) {
-        toast({ title: `Resource ${status}` });
+        toast({ title: `Resource ${newStatus}` });
         fetchResources();
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Failed to update status", variant: "destructive" });
     }
-  }
-
-  const handleDelete = (id: number) => {
-    // Implement delete or just use reject
-    updateStatus(id, 'rejected'); // Soft delete via reject for now
   };
 
-  const onAddResource = async () => {
-    if (!newResource.title) return;
-    setUploading(true);
-
-    let url = newResource.link;
+  const handleDelete = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this resource?")) return;
 
     try {
       const token = localStorage.getItem("authToken");
-
-      // Upload file if exists
-      if (newResource.file) {
-        const formData = new FormData();
-        formData.append('file', newResource.file);
-
-        const uploadRes = await fetch(`${apiConfig.baseUrl}/api/upload`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData
-        });
-
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json();
-          url = uploadData.url;
-        } else {
-          throw new Error("Upload failed");
-        }
-      }
-
-      // Create Resource
-      const res = await fetch(`${apiConfig.baseUrl}/api/counsellor/resources`, { // Reuse endpoint
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          title: newResource.title,
-          description: newResource.description,
-          type: newResource.type,
-          url: url,
-          content: newResource.content
-        })
+      const res = await fetch(`${apiConfig.baseUrl}/admin/resources/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (res.ok) {
-        toast({ title: "Resource submitted" });
+        toast({ title: "Resource deleted" });
+        fetchResources();
+      }
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Failed to delete resource", variant: "destructive" });
+    }
+  };
+
+  const handleOpenAdd = () => {
+    setIsEditing(false);
+    setFormData({ title: "", description: "", type: "article", url: "", content: "" });
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (resource: Resource) => {
+    setIsEditing(true);
+    setCurrentResourceId(resource.id);
+    setFormData({
+      title: resource.title || "",
+      description: resource.description || "",
+      type: resource.type || "article",
+      url: resource.url || "",
+      content: resource.content || ""
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const url = isEditing
+        ? `${apiConfig.baseUrl}/admin/resources/${currentResourceId}`
+        : `${apiConfig.baseUrl}/resources`;
+
+      const method = isEditing ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (res.ok) {
+        toast({ title: `Resource ${isEditing ? 'updated' : 'added'} successfully` });
         setIsModalOpen(false);
         fetchResources();
-        setNewResource({ title: "", description: "", type: "article", content: "", file: null, link: "" });
+      } else {
+        const err = await res.json();
+        toast({ title: "Error", description: err.msg, variant: "destructive" });
       }
-    } catch (err) {
-      console.error(err);
-      toast({ title: "Failed to create resource", variant: "destructive" });
-    } finally {
-      setUploading(false);
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Failed to save resource", variant: "destructive" });
     }
   };
 
+  const filteredResources = resources.filter(r =>
+    (filter === "all" || r.status === filter) &&
+    (r.title.toLowerCase().includes(searchTerm.toLowerCase()) || r.author.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   return (
-    <div className="flex h-screen bg-gray-100 text-gray-900">
-      <CounsellorSidebar />
-      <div className="flex-1 p-6 lg:p-10 overflow-y-auto">
-        <header className="flex justify-between items-center pb-4 border-b border-gray-300">
-          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-          <div className="flex items-center space-x-3">
-            <span className="text-lg text-gray-600">
-              Welcome, <span className="font-semibold text-gray-900">{username}</span>!
-            </span>
-            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-              {username.charAt(0).toUpperCase()}
-            </div>
+    <AdminLayout
+      title="Resource Management"
+      icon={<BookOpen className="text-blue-500" />}
+      username={username}
+    >
+      {/* Controls */}
+      <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+        <div className="flex flex-col md:flex-row items-center gap-4 flex-1">
+          <div className="relative w-full md:w-auto md:flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="text"
+              placeholder="Search resources..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            />
           </div>
-        </header>
-
-        <div className="mt-8 bg-white rounded-2xl shadow p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800">Resource Management</h2>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus size={18} /> Add Resource
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {resources.map((r) => (
-              <div
-                key={r.id}
-                className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-100"
-              >
-                <div className="flex items-center gap-4">
-                  {r.type === "article" && <FileText className="text-blue-600" />}
-                  {r.type === "video" && <Video className="text-green-600" />}
-                  {r.type === "audio" && <LinkIcon className="text-orange-600" />}
-                  <div>
-                    <div className="font-medium text-gray-800 flex items-center gap-2">
-                      {r.title}
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${r.status === 'approved' ? 'bg-green-100 text-green-800' :
-                          r.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                            'bg-yellow-100 text-yellow-800'
-                        }`}>
-                        {r.status}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {r.type} • {r.date} • By {r.author}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {r.status === 'pending' && (
-                    <>
-                      <button onClick={() => updateStatus(r.id, 'approved')} className="p-2 text-green-600 hover:bg-green-50 rounded-full" title="Approve">
-                        <CheckCircle size={20} />
-                      </button>
-                      <button onClick={() => updateStatus(r.id, 'rejected')} className="p-2 text-red-600 hover:bg-red-50 rounded-full" title="Reject">
-                        <XCircle size={20} />
-                      </button>
-                    </>
-                  )}
-                  <button
-                    onClick={() => handleDelete(r.id)}
-                    className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            ))}
-            {resources.length === 0 && <div className="text-center text-gray-500 py-8">No resources found.</div>}
-          </div>
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="w-full md:w-auto p-2 border rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
         </div>
+        <button
+          onClick={handleOpenAdd}
+          className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+        >
+          <Plus size={20} /> Add Resource
+        </button>
       </div>
 
+      {/* Resource List */}
+      {loading ? (
+        <p>Loading resources...</p>
+      ) : (
+        <div className="space-y-4">
+          {filteredResources.map((resource) => (
+            <div key={resource.id} className="bg-white p-6 rounded-xl shadow-md border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all hover:shadow-lg">
+              <div className="flex-1 w-full">
+                <div className="flex items-center gap-3 mb-1">
+                  <span className={`px-2 py-0.5 rounded text-xs uppercase font-bold tracking-wider ${resource.type === 'video' ? 'bg-red-100 text-red-600' :
+                    resource.type === 'audio' ? 'bg-purple-100 text-purple-600' :
+                      'bg-blue-100 text-blue-600'
+                    }`}>
+                    {resource.type}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded text-xs uppercase font-bold tracking-wider ${resource.status === 'approved' ? 'bg-green-100 text-green-600' :
+                    resource.status === 'rejected' ? 'bg-gray-100 text-gray-500' :
+                      'bg-yellow-100 text-yellow-600'
+                    }`}>
+                    {resource.status}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {resource.type === "article" && <FileText size={18} className="text-gray-500" />}
+                  {resource.type === "video" && <Video size={18} className="text-gray-500" />}
+                  {resource.type === "audio" && <LinkIcon size={18} className="text-gray-500" />}
+                  <h3 className="text-xl font-bold text-gray-800 break-words">{resource.title}</h3>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  By {resource.author} • {resource.date}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                {/* Actions */}
+                {resource.status === 'pending' && (
+                  <>
+                    <button
+                      onClick={() => handleStatusChange(resource.id, 'approved')}
+                      className="p-2 text-green-600 hover:bg-green-50 rounded-full"
+                      title="Approve"
+                    >
+                      <CheckCircle size={20} />
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange(resource.id, 'rejected')}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-full"
+                      title="Reject"
+                    >
+                      <XCircle size={20} />
+                    </button>
+                  </>
+                )}
+
+                <button
+                  onClick={() => handleOpenEdit(resource)}
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
+                  title="Edit"
+                >
+                  <Edit2 size={20} />
+                </button>
+
+                <button
+                  onClick={() => handleDelete(resource.id)}
+                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full"
+                  title="Delete"
+                >
+                  <Trash2 size={20} />
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {filteredResources.length === 0 && (
+            <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
+              <p>No resources found matching criteria.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-gray-800">Add New Resource</h3>
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-800">
+                {isEditing ? "Edit Resource" : "Add New Resource"}
+              </h3>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
                 <X size={24} />
               </button>
             </div>
+
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Title</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
                 <input
                   type="text"
-                  value={newResource.title}
-                  onChange={(e) => setNewResource({ ...newResource, title: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
-                <input
-                  type="text"
-                  value={newResource.description}
-                  onChange={(e) => setNewResource({ ...newResource, description: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                 <select
-                  value={newResource.type}
-                  onChange={(e) => setNewResource({ ...newResource, type: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   <option value="article">Article</option>
                   <option value="video">Video</option>
                   <option value="audio">Audio</option>
                 </select>
               </div>
-
-              {newResource.type === 'article' ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                  rows={3}
+                />
+              </div>
+              {formData.type !== 'article' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Content</label>
-                  <textarea
-                    value={newResource.content}
-                    onChange={(e) => setNewResource({ ...newResource, content: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border h-32"
+                  <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                  <input
+                    type="text"
+                    value={formData.url}
+                    onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="https://..."
                   />
                 </div>
-              ) : (
+              )}
+              {formData.type === 'article' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Upload File</label>
-                  <div className="mt-1 flex items-center justify-center w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-8 h-8 mb-4 text-gray-500" />
-                        <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">Click to upload</span></p>
-                        <p className="text-xs text-gray-500">{newResource.file ? newResource.file.name : "MP4, MP3, etc."}</p>
-                      </div>
-                      <input type="file" className="hidden" onChange={(e) => setNewResource({ ...newResource, file: e.target.files?.[0] || null })} />
-                    </label>
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                  <textarea
+                    value={formData.content}
+                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                    rows={6}
+                  />
                 </div>
               )}
 
-              <div className="flex justify-end gap-2 pt-4">
+              <div className="pt-4">
                 <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                  onClick={handleSubmit}
+                  disabled={!formData.title || !formData.description}
+                  className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={onAddResource}
-                  disabled={uploading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300"
-                >
-                  {uploading ? 'Uploading...' : 'Add Resource'}
+                  {isEditing ? "Update Resource" : "Create Resource"}
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
-}
+};
+
+export default ResourceManagement;

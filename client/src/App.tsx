@@ -22,6 +22,9 @@ import AdminDashboard from "./pages/admin/dashboard";
 import CrisisEscalation from "./pages/admin/CrisisiEscalation";
 import CounselorAvailability from "./pages/admin/CounselorAvailability";
 import SettingsPage from "./pages/admin/Setting";
+import Students from "./pages/admin/Students";
+import Reports from "./pages/admin/Reports";
+import Resources from "./pages/admin/ResourceManagement";
 import AdminRegister from "./pages/adminRegister";
 import ForgotUsername from "./pages/ForgotUsename";
 import CounsellorRegister from "./pages/CounsellorRegister";
@@ -32,14 +35,17 @@ import Messages from "./pages/counsellor/Messages";
 import CounselorResources from "./pages/counsellor/Resources";
 import Settings from "./pages/counsellor/Settings";
 import Chatbot from "./pages/Chatbot";
-import Resources from "./pages/admin/ResourceManagement";
 import SessionPage from "./pages/SessionPage";
 import StudentMessages from "./pages/StudentMessages";
+
+import ForgotPassword from "@/pages/ForgotPassword";
+
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/login" component={Login} />
+      <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/signup" component={Signup} />
       <Route path="/counsellor/register" component={CounsellorRegister} />
       <Route path="/admin/register" component={AdminRegister} />
@@ -61,14 +67,14 @@ function Router() {
 
       {/* Admin Routes */}
       <Route path="/admin/dashboard" component={AdminDashboard} />
+      <Route path="/admin/students" component={Students} />
       <Route path="/admin/crisis-escalation" component={CrisisEscalation} />
       <Route path="/admin/counselor-availability" component={CounselorAvailability} />
+      <Route path="/admin/resources" component={Resources} />
+      <Route path="/admin/reports" component={Reports} />
       <Route path="/admin/settings" component={SettingsPage} />
-      <Route path="/admin/register" component={AdminRegister} />
-      <Route path="/forgot-username" component={ForgotUsername} />
-      
 
-      // ... Inside Router switch ...
+      {/* Counsellor Routes */}
       <Route path="/counsellor/dashboard" component={CounsellorDashboard} />
       <Route path="/counsellor/schedule" component={Schedule} />
       <Route path="/counsellor/clients" component={Clients} />
@@ -77,7 +83,6 @@ function Router() {
       <Route path="/counsellor/settings" component={Settings} />
 
       <Route path="/chatbot" component={Chatbot} />
-      <Route path="/counsellor/register" component={CounsellorRegister} />
       <Route path="/session/:sessionId" component={SessionPage} />
       <Route component={NotFound} />
     </Switch>

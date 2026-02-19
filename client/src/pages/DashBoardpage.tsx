@@ -11,7 +11,8 @@ import WellnessJourney from "@/components/WellnessJourney";
 import RecommendedForYou from "@/components/RecommendedForYou";
 import ConnectAndShare from "@/components/ConnectAndShare";
 import AiChatFab from "@/components/AiChatFab.tsx";
-import BotpressChatbot from "@/components/botpress-chatbot";
+import AiChatBubble from "@/components/AiChatBubble";
+// import BotpressChatbot from "@/components/botpress-chatbot";
 import Footer from "@/components/footer";
 import UpcomingStudentAppointments from "@/components/UpcomingStudentAppointments";
 declare global {
@@ -72,7 +73,9 @@ export default function DashboardPage() {
       {/* <AiChatFab onClick={handleChatFabClick} /> */}
 
 
-      <BotpressChatbot authToken={authToken} />
+      {/* Replaced Botpress with local AI Chat Bubble */}
+      <AiChatBubble />
+      {/* <BotpressChatbot authToken={authToken} /> */}
       <Footer />
     </>
   );

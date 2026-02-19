@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Menu,
   X,
@@ -19,6 +19,17 @@ import { useLocation } from "wouter";
 export default function CounsellorSidebar() {
   const [open, setOpen] = useState(true);
   const [location] = useLocation();
+  const [username, setUsername] = useState("Counsellor");
+
+  useEffect(() => {
+    const stored = localStorage.getItem("username");
+    if (stored) setUsername(stored);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.href = "/login";
+  };
 
   const navItems = [
     { label: "Dashboard", icon: LayoutDashboard, href: "/counsellor/dashboard" },
@@ -32,7 +43,7 @@ export default function CounsellorSidebar() {
   return (
     <aside
       className={`flex-shrink-0 ${open ? "w-64" : "w-20"
-        } transition-all duration-300 bg-gray-900 text-white min-h-screen flex flex-col`}
+        } transition-all duration-300 bg-gray-900 text-white h-screen sticky top-0 flex flex-col z-50 shadow-xl border-r border-gray-800`}
     >
       {/* Header */}
       <div className="p-4 flex items-center justify-between">
@@ -49,7 +60,7 @@ export default function CounsellorSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="mt-6 flex-1 space-y-2">
+      <nav className="mt-6 flex-1 space-y-2 overflow-y-auto custom-scrollbar">
         {navItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = location === item.href;
@@ -70,18 +81,28 @@ export default function CounsellorSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-800">
-        <div className="flex items-center justify-center">
-          {open ? (
-            <div className="text-xs text-gray-400 text-center">
-              Signed in as <br />
-              <strong className="text-white">Dr. Lena</strong>
+      <div className="p-4 border-t border-gray-800 bg-gray-900">
+        <div className="flex flex-col gap-4">
+          <div className={`flex items-center ${open ? "justify-start" : "justify-center"} gap-3`}>
+            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
+              {username.charAt(0).toUpperCase()}
             </div>
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm">
-              DL
-            </div>
-          )}
+            {open && (
+              <div className="text-xs text-gray-400 overflow-hidden">
+                Signed in as <br />
+                <strong className="text-white truncate block max-w-[120px]" title={username}>{username}</strong>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className={`flex items-center gap-3 text-red-400 hover:text-red-300 hover:bg-gray-800 p-2 rounded-lg transition-colors ${open ? "justify-start" : "justify-center"}`}
+            title="Log Out"
+          >
+            <LogOut size={20} />
+            {open && <span className="text-sm font-medium">Log Out</span>}
+          </button>
         </div>
       </div>
     </aside>
