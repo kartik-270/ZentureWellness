@@ -103,6 +103,7 @@ export default function HeroSection() {
       width={400}
       height={600}
       className="
+      hidden md:block object-cover
         w-[32vw] h-[38vh] rounded-lg
         transition-all duration-500 ease-in-out
         group-hover:scale-105

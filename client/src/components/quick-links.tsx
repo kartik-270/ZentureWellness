@@ -31,7 +31,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
                             <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                                 Psychoeducational Hub
                             </h3>
-                            <p className=" hidden md:block text-muted-foreground">
+                            <p className=" hidden md:block text-white text-muted-foreground">
                                 Explore articles, videos & audio for a healthier mind
                             </p>
                         </Link>
@@ -52,7 +52,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
                             <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                                 Book a Session
                             </h3>
-                            <p className=" hidden md:block text-muted-foreground">
+                            <p className=" hidden md:block text-white text-muted-foreground">
                                 Connect with a campus counselor
                             </p>
                         </Link>
@@ -73,7 +73,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
                             <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                                 Peer Support
                             </h3>
-                            <p className=" hidden md:block text-muted-foreground">
+                            <p className=" hidden md:block text-white text-muted-foreground">
                                 Share & connect with fellow students
                             </p>
                         </Link>
@@ -94,7 +94,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
                             <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                                 Self-Assessment Tests
                             </h3>
-                            <p className=" hidden md:block text-muted-foreground">
+                            <p className=" hidden md:block text-white text-muted-foreground">
                                 Take a quick mental health screening test
                             </p>
                         </div>
