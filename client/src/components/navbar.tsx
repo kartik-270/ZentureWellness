@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import logo from "../../../public/logo1.jpeg";
@@ -8,6 +8,7 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
   const [location, setLocation] = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -24,6 +25,7 @@ export default function Navbar() {
     setIsLoggedIn(false);
     setUsername("");
     setLocation("/login");
+    setMobileOpen(false);
   };
 
   const navLink = (href: string, label: string) => {
@@ -46,12 +48,12 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-border shadow-sm">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex h-20 items-center justify-between">
+        <div className="flex h-16 md:h-20 items-center justify-between">
           
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Zenture" className="w-11 h-11 object-contain" />
-            <span className="text-2xl font-bold tracking-tight">
+            <img src={logo} alt="Zenture" className="w-10 h-10 object-contain" />
+            <span className="text-xl md:text-2xl font-bold tracking-tight">
               Zenture
             </span>
           </div>
@@ -65,7 +67,7 @@ export default function Navbar() {
             {navLink("/community", "Community")}
           </div>
 
-          {/* Auth */}
+          {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-4">
             {isLoggedIn ? (
               <>
@@ -82,18 +84,13 @@ export default function Navbar() {
             ) : (
               <>
                 <Link href="/login">
-                  <Button
-                    variant="outline"
-                    className="rounded-full px-6"
-                  >
+                  <Button variant="outline" className="rounded-full px-6">
                     Log in
                   </Button>
                 </Link>
 
                 <Link href="/signup">
-                  <Button
-                    className="rounded-full px-7 bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md hover:shadow-lg hover:scale-105 transition"
-                  >
+                  <Button className="rounded-full px-7 bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md hover:shadow-lg hover:scale-105 transition">
                     Sign up
                   </Button>
                 </Link>
@@ -101,14 +98,77 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile */}
+          {/* Mobile Button */}
           <div className="md:hidden">
-            <Button variant="ghost" size="icon">
-              <Menu size={22} />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileOpen(!mobileOpen)}
+            >
+              {mobileOpen ? <X size={22} /> : <Menu size={22} />}
             </Button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileOpen && (
+        <div className="md:hidden bg-white border-t border-border shadow-lg animate-in slide-in-from-top duration-200">
+          <div className="flex flex-col px-6 py-5 space-y-4">
+
+            <Link href="/" onClick={() => setMobileOpen(false)} className="text-lg">
+              Home
+            </Link>
+
+            <Link href="/psychoeducational-hub" onClick={() => setMobileOpen(false)} className="text-lg">
+              Resources
+            </Link>
+
+            <Link href="/about" onClick={() => setMobileOpen(false)} className="text-lg">
+              About
+            </Link>
+
+            <Link href="/faq" onClick={() => setMobileOpen(false)} className="text-lg">
+              FAQ
+            </Link>
+
+            <Link href="/community" onClick={() => setMobileOpen(false)} className="text-lg">
+              Community
+            </Link>
+
+            <div className="pt-4 border-t space-y-3">
+              {isLoggedIn ? (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Hi, {username}
+                  </p>
+                  <Button
+                    onClick={handleLogout}
+                    className="w-full bg-red-500 hover:bg-red-600"
+                  >
+                    Log out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" onClick={() => setMobileOpen(false)}>
+                    <Button variant="outline" className="w-full">
+                      Log in
+                    </Button>
+                  </Link>
+
+                  <Link href="/signup" onClick={() => setMobileOpen(false)}>
+                    <Button className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white">
+                      Sign up
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

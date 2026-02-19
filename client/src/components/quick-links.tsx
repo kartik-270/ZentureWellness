@@ -20,7 +20,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/*Psychoeducational Hub*/}
-                    <div className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
+                    <div className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
                         <Link href="/psychoeducational-hub">
                             <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/30 transition-colors">
                                 <BookOpen
@@ -31,7 +31,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
                             <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                                 Psychoeducational Hub
                             </h3>
-                            <p className="text-muted-foreground">
+                            <p className=" hidden md:block text-white text-muted-foreground">
                                 Explore articles, videos & audio for a healthier mind
                             </p>
                         </Link>
@@ -39,7 +39,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
 
                     {/* Book a Session */}
                     <div
-                        className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                        className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
                         data-testid="card-book-session"
                     >
                         <Link href="/book-appointment">
@@ -52,7 +52,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
                             <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                                 Book a Session
                             </h3>
-                            <p className="text-muted-foreground">
+                            <p className=" hidden md:block text-white text-muted-foreground">
                                 Connect with a campus counselor
                             </p>
                         </Link>
@@ -60,7 +60,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
 
                     {/* Peer Support */}
                     <div
-                        className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                        className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
                         data-testid="card-peer-support"
                     >
                         <Link href="/community">
@@ -73,7 +73,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
                             <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                                 Peer Support
                             </h3>
-                            <p className="text-muted-foreground">
+                            <p className=" hidden md:block text-white text-muted-foreground">
                                 Share & connect with fellow students
                             </p>
                         </Link>
@@ -82,7 +82,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
                     {/*Self-Assessment Tests*/}
                     <Link href="/self-assessment-tests">
                         <div
-                            className="gradient-bg bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                            className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
                             data-testid="card-self-assessment"
                         >
                             <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/30 transition-colors">
@@ -94,7 +94,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
                             <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                                 Self-Assessment Tests
                             </h3>
-                            <p className="text-muted-foreground">
+                            <p className=" hidden md:block text-white text-muted-foreground">
                                 Take a quick mental health screening test
                             </p>
                         </div>
