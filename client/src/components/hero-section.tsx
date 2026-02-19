@@ -111,9 +111,9 @@ export default function HeroSection() {
         group-hover:contrast-110
         group-hover:drop-shadow-[0_10px_30px_rgba(59,130,246,0.4)]
       "
-    />
-  </div>
-</div>
+              />
+            </div>
+          </div>
 
         </div>
       </div>
