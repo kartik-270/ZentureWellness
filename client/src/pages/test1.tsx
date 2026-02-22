@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import { apiConfig } from "@/lib/config";
 
 const phq9Questions = [
   {
@@ -55,6 +56,34 @@ export default function PHQ9Test() {
 
   const totalScore = answers.reduce((acc, val) => acc + (val || 0), 0);
   const scoreInterpretation = getScoreInterpretation(totalScore);
+
+  useEffect(() => {
+    if (showResults) {
+      saveResult();
+    }
+  }, [showResults]);
+
+  const saveResult = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+
+      await fetch(`${apiConfig.baseUrl}/assessments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          test_type: "PHQ-9",
+          score: totalScore,
+          interpretation: scoreInterpretation
+        })
+      });
+    } catch (e) {
+      console.error("Failed to save assessment", e);
+    }
+  };
 
   const handleAnswerChange = (value: number) => {
     const newAnswers = [...answers];

@@ -3,6 +3,7 @@ import { Users, Plus, Trash2, MessageCircle } from "lucide-react";
 import { apiConfig } from "@/lib/config";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "../../components/AdminLayout";
+import { useLocation } from "wouter";
 
 interface Community {
     id: number;
@@ -13,6 +14,7 @@ interface Community {
 
 const AdminCommunities: React.FC = () => {
     const [username, setUsername] = useState("Admin");
+    const [_, setLocation] = useLocation();
     const [communities, setCommunities] = useState<Community[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -144,7 +146,7 @@ const AdminCommunities: React.FC = () => {
                                     <Users size={16} className="mr-1" />
                                     {community.member_count} Members
                                 </div>
-                                <button className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors">
+                                <button onClick={() => setLocation("/community")} className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors">
                                     View Posts &rarr;
                                 </button>
                             </div>

@@ -4,6 +4,8 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { apiConfig } from "@/lib/config";
+import { Image as ImageIcon, Loader2 } from "lucide-react";
 
 export default function Community() {
   const [communities, setCommunities] = useState<any[]>([]);
@@ -17,6 +19,9 @@ export default function Community() {
   const [replies, setReplies] = useState<any[]>([]);
   const [newReplyContent, setNewReplyContent] = useState("");
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const [isDMOpen, setIsDMOpen] = useState(false);
   const [dmUserId, setDmUserId] = useState<number | null>(null);
   const [dmUserName, setDmUserName] = useState("");
@@ -25,7 +30,7 @@ export default function Community() {
 
   const [error, setError] = useState("");
 
-  const getAuthToken = () => localStorage.getItem("token");
+  const getAuthToken = () => localStorage.getItem("authToken");
 
   useEffect(() => {
     fetchCommunities();
@@ -37,7 +42,7 @@ export default function Community() {
       const headers: any = { "Content-Type": "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
-      const res = await fetch("http://localhost:5000/api/communities", { headers });
+      const res = await fetch(`${apiConfig.baseUrl}/communities`, { headers });
       if (res.ok) {
         const data = await res.json();
         setCommunities(data);
@@ -53,7 +58,7 @@ export default function Community() {
 
   const fetchPosts = async (communityId: number) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/communities/${communityId}/posts`);
+      const res = await fetch(`${apiConfig.baseUrl}/communities/${communityId}/posts`);
       if (res.ok) {
         const data = await res.json();
         setPosts(data);
@@ -80,18 +85,50 @@ export default function Community() {
       return;
     }
     try {
-      const res = await fetch(`http://localhost:5000/api/communities/${activeCommunity.id}/posts`, {
+      let uploadedMediaUrl = null;
+
+      if (selectedFile) {
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        const uploadRes = await fetch(`${apiConfig.baseUrl}/upload`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
+          uploadedMediaUrl = uploadData.url;
+        } else {
+          setError("Failed to upload image. Please try again.");
+          setIsUploading(false);
+          return;
+        }
+      }
+
+      setIsUploading(true); // Keep button disabled while creating post
+
+      const res = await fetch(`${apiConfig.baseUrl}/communities/${activeCommunity.id}/posts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ title: newPostTitle, content: newPostContent })
+        body: JSON.stringify({
+          title: newPostTitle,
+          content: newPostContent,
+          media_url: uploadedMediaUrl
+        })
       });
       if (res.ok) {
         setIsPostModalOpen(false);
         setNewPostTitle("");
         setNewPostContent("");
+        setSelectedFile(null);
         setError("");
         fetchPosts(activeCommunity.id);
       } else {
@@ -100,6 +137,8 @@ export default function Community() {
       }
     } catch (err) {
       setError("Network error occurred.");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -110,7 +149,7 @@ export default function Community() {
     }
     setExpandedPostId(postId);
     try {
-      const res = await fetch(`http://localhost:5000/api/posts/${postId}/replies`);
+      const res = await fetch(`${apiConfig.baseUrl}/posts/${postId}/replies`);
       if (res.ok) {
         const data = await res.json();
         setReplies(data);
@@ -124,6 +163,7 @@ export default function Community() {
   const [newCommunityName, setNewCommunityName] = useState("");
   const [newCommunityDesc, setNewCommunityDesc] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchCommunities();
@@ -133,6 +173,7 @@ export default function Community() {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         setUserRole(payload.role);
+        setCurrentUserId(Number(payload.sub));
       } catch (e) { }
     }
   }, []);
@@ -145,7 +186,7 @@ export default function Community() {
     const token = getAuthToken();
     if (!token) return;
     try {
-      const res = await fetch("http://localhost:5000/api/communities", {
+      const res = await fetch(`${apiConfig.baseUrl}/communities`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ name: newCommunityName, description: newCommunityDesc })
@@ -172,7 +213,7 @@ export default function Community() {
       return;
     }
     try {
-      const res = await fetch(`http://localhost:5000/api/posts/${postId}/replies`, {
+      const res = await fetch(`${apiConfig.baseUrl}/posts/${postId}/replies`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -183,7 +224,7 @@ export default function Community() {
       if (res.ok) {
         setNewReplyContent("");
         // Refresh replies
-        const replyRes = await fetch(`http://localhost:5000/api/posts/${postId}/replies`);
+        const replyRes = await fetch(`${apiConfig.baseUrl}/posts/${postId}/replies`);
         if (replyRes.ok) {
           const data = await replyRes.json();
           setReplies(data);
@@ -200,7 +241,7 @@ export default function Community() {
     if (!window.confirm("Are you sure you want to delete this post?")) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/posts/${postId}`, {
+      const res = await fetch(`${apiConfig.baseUrl}/posts/${postId}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -225,7 +266,7 @@ export default function Community() {
     const token = getAuthToken();
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/messages/direct/${userId}`, {
+      const res = await fetch(`${apiConfig.baseUrl}/messages/direct/${userId}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -242,7 +283,7 @@ export default function Community() {
     const token = getAuthToken();
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/messages/direct/${dmUserId}`, {
+      const res = await fetch(`${apiConfig.baseUrl}/messages/direct/${dmUserId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ content: newDmContent })
@@ -327,11 +368,22 @@ export default function Community() {
                     <span className="text-3xl">📋</span>
                     <h3 className="text-xl font-semibold">{post.title}</h3>
                   </div>
-                  <button onClick={() => handleDeletePost(post.id)} className="text-red-500 hover:text-red-700 font-medium text-sm">Delete</button>
+                  {(userRole === 'admin' || userRole === 'moderator' || currentUserId === post.author.id) && (
+                    <button onClick={() => handleDeletePost(post.id)} className="text-red-500 hover:text-red-700 font-medium text-sm">Delete</button>
+                  )}
                 </div>
                 <p className="text-gray-800 mb-4 text-md whitespace-pre-wrap">
                   {post.content}
                 </p>
+                {post.media_url && (
+                  <div className="mb-4 rounded-xl overflow-hidden max-w-2xl bg-gray-100 flex items-center justify-center">
+                    {post.media_url.match(/\.(mp4|webm|ogg)$/i) ? (
+                      <video src={post.media_url} controls className="max-h-96 w-auto object-contain"></video>
+                    ) : (
+                      <img src={post.media_url} alt="Post attachment" className="max-h-96 w-auto object-contain" />
+                    )}
+                  </div>
+                )}
                 <div className="flex justify-between items-center text-sm font-medium text-gray-600 border-t pt-4">
                   <span>
                     <button onClick={() => handleOpenDM(post.author.id, post.author.username)} className="text-sky-600 hover:underline">{post.author.username}</button>
@@ -418,9 +470,40 @@ export default function Community() {
                 placeholder="Write your message here..."
               ></textarea>
             </div>
+
+            <div className="mb-6 flex items-center gap-4">
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={(e) => setSelectedFile(e.target.files ? e.target.files[0] : null)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                  <ImageIcon size={20} />
+                  {selectedFile ? 'Change Media' : 'Attach Media'}
+                </button>
+              </div>
+              {selectedFile && (
+                <span className="text-sm text-gray-600 truncate max-w-xs">{selectedFile.name}</span>
+              )}
+            </div>
+
             <div className="flex justify-end gap-3">
-              <button onClick={() => setIsPostModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition font-medium">Cancel</button>
-              <button onClick={handleCreatePost} className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition font-medium">Post</button>
+              <button
+                onClick={() => { setIsPostModalOpen(false); setSelectedFile(null); }}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition font-medium"
+                disabled={isUploading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreatePost}
+                className="flex items-center justify-center gap-2 px-6 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition font-medium disabled:opacity-75"
+                disabled={isUploading}
+              >
+                {isUploading ? <><Loader2 className="animate-spin" size={18} /> Posting...</> : 'Post'}
+              </button>
             </div>
           </div>
         </div>

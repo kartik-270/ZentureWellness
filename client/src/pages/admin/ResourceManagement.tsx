@@ -11,7 +11,9 @@ import {
   X,
   FileText,
   Video,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Image as ImageIcon,
+  Loader2
 } from "lucide-react";
 import { apiConfig } from "@/lib/config";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +29,7 @@ interface Resource {
   description?: string;
   url?: string;
   content?: string;
+  language?: string;
 }
 
 const ResourceManagement: React.FC = () => {
@@ -40,13 +43,16 @@ const ResourceManagement: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentResourceId, setCurrentResourceId] = useState<number | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     type: "article",
     url: "",
-    content: ""
+    content: "",
+    language: "English"
   });
 
   const { toast } = useToast();
@@ -120,7 +126,7 @@ const ResourceManagement: React.FC = () => {
 
   const handleOpenAdd = () => {
     setIsEditing(false);
-    setFormData({ title: "", description: "", type: "article", url: "", content: "" });
+    setFormData({ title: "", description: "", type: "article", url: "", content: "", language: "English" });
     setIsModalOpen(true);
   };
 
@@ -132,14 +138,41 @@ const ResourceManagement: React.FC = () => {
       description: resource.description || "",
       type: resource.type || "article",
       url: resource.url || "",
-      content: resource.content || ""
+      content: resource.content || "",
+      language: resource.language || "English"
     });
     setIsModalOpen(true);
   };
 
   const handleSubmit = async () => {
+    setIsUploading(true);
     try {
       const token = localStorage.getItem("authToken");
+      let mediaUrl = formData.url;
+
+      // Handle file upload if a file is selected
+      if (selectedFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", selectedFile);
+
+        const uploadRes = await fetch(`${apiConfig.baseUrl}/upload`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          body: uploadFormData
+        });
+
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
+          mediaUrl = uploadData.url;
+        } else {
+          toast({ title: "Failed to upload media", variant: "destructive" });
+          setIsUploading(false);
+          return;
+        }
+      }
+
       const url = isEditing
         ? `${apiConfig.baseUrl}/admin/resources/${currentResourceId}`
         : `${apiConfig.baseUrl}/resources`;
@@ -152,12 +185,13 @@ const ResourceManagement: React.FC = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ ...formData, url: mediaUrl })
       });
 
       if (res.ok) {
         toast({ title: `Resource ${isEditing ? 'updated' : 'added'} successfully` });
         setIsModalOpen(false);
+        setSelectedFile(null);
         fetchResources();
       } else {
         const err = await res.json();
@@ -166,6 +200,8 @@ const ResourceManagement: React.FC = () => {
     } catch (error) {
       console.error(error);
       toast({ title: "Failed to save resource", variant: "destructive" });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -331,24 +367,70 @@ const ResourceManagement: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
                   rows={3}
                 />
               </div>
-              {formData.type !== 'article' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
+                <select
+                  value={formData.language}
+                  onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                >
+                  <option value="English">English</option>
+                  <option value="Hindi">Hindi</option>
+                  <option value="Marathi">Marathi</option>
+                  <option value="Bengali">Bengali</option>
+                  <option value="Tamil">Tamil</option>
+                  <option value="Telugu">Telugu</option>
+                  <option value="Kannada">Kannada</option>
+                  <option value="Malayalam">Malayalam</option>
+                </select>
+              </div>
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
-                  <input
-                    type="text"
-                    value={formData.url}
-                    onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="https://..."
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {formData.type === 'article' ? "Header Image (Optional)" : "Media File (Optional)"}
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept={formData.type === 'video' ? "video/*" : formData.type === 'audio' ? "audio/*" : "image/*"}
+                        onChange={(e) => setSelectedFile(e.target.files ? e.target.files[0] : null)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <button className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                        <ImageIcon size={18} />
+                        {selectedFile ? 'Change File' : 'Upload File'}
+                      </button>
+                    </div>
+                    {selectedFile && (
+                      <span className="text-sm text-gray-600 truncate max-w-[200px]">{selectedFile.name}</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {formData.type === 'article'
+                      ? "Upload a cover image for your article."
+                      : "Upload to Cloudinary or provide a URL below."}
+                  </p>
                 </div>
-              )}
+
+                {formData.type !== 'article' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">URL (Alternative)</label>
+                    <input
+                      type="text"
+                      value={formData.url}
+                      onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                      className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50 disabled:text-gray-400"
+                      placeholder="https://..."
+                      disabled={!!selectedFile}
+                    />
+                  </div>
+                )}
+              </div>
+
               {formData.type === 'article' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
@@ -364,10 +446,14 @@ const ResourceManagement: React.FC = () => {
               <div className="pt-4">
                 <button
                   onClick={handleSubmit}
-                  disabled={!formData.title || !formData.description}
-                  className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isUploading || !formData.title || !formData.description}
+                  className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {isEditing ? "Update Resource" : "Create Resource"}
+                  {isUploading ? (
+                    <><Loader2 className="animate-spin" size={20} /> Processing...</>
+                  ) : (
+                    isEditing ? "Update Resource" : "Create Resource"
+                  )}
                 </button>
               </div>
             </div>

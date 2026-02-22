@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { apiConfig } from "@/lib/config";
 import CounsellorSidebar from '@/components/CounsellorSidebar';
-import { Upload, FileText, Video, Mic, CheckCircle, Clock } from 'lucide-react';
+import { Upload, FileText, Video, Mic, CheckCircle, Clock, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 export default function Resources() {
     const [resources, setResources] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState<'my-resources' | 'create'>('my-resources');
-    const [formData, setFormData] = useState({ title: '', description: '', type: 'article', content: '', url: '' });
+    const [formData, setFormData] = useState({ title: '', description: '', type: 'article', content: '', url: '', language: 'English' });
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
     const { toast } = useToast();
 
     useEffect(() => { fetchResources(); }, []);
@@ -24,24 +26,52 @@ export default function Resources() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsUploading(true);
         try {
             const token = localStorage.getItem('authToken');
+            let finalUrl = formData.url;
+
+            // Handle Cloudinary upload if file is selected
+            if (selectedFile) {
+                const uploadFormData = new FormData();
+                uploadFormData.append('file', selectedFile);
+
+                const uploadRes = await fetch(`${apiConfig.baseUrl}/upload`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: uploadFormData
+                });
+
+                if (uploadRes.ok) {
+                    const uploadData = await uploadRes.json();
+                    finalUrl = uploadData.url;
+                } else {
+                    toast({ title: "Upload Failed", description: "Failed to upload media to Cloudinary.", variant: "destructive" });
+                    setIsUploading(false);
+                    return;
+                }
+            }
+
             const res = await fetch(`${apiConfig.baseUrl}/counsellor/resources`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify({ ...formData, url: finalUrl })
             });
+
             if (res.ok) {
                 toast({ title: "Success", description: "Resource submitted for review." });
-                setFormData({ title: '', description: '', type: 'article', content: '', url: '' });
+                setFormData({ title: '', description: '', type: 'article', content: '', url: '', language: 'English' });
+                setSelectedFile(null);
                 fetchResources();
                 setActiveTab('my-resources');
             }
         } catch (e) {
             toast({ title: "Error", description: "Failed to submit resource.", variant: "destructive" });
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -121,6 +151,24 @@ export default function Resources() {
                             </div>
 
                             <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
+                                <select
+                                    value={formData.language}
+                                    onChange={e => setFormData({ ...formData, language: e.target.value })}
+                                    className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 bg-white"
+                                >
+                                    <option value="English">English</option>
+                                    <option value="Hindi">Hindi</option>
+                                    <option value="Marathi">Marathi</option>
+                                    <option value="Bengali">Bengali</option>
+                                    <option value="Tamil">Tamil</option>
+                                    <option value="Telugu">Telugu</option>
+                                    <option value="Kannada">Kannada</option>
+                                    <option value="Malayalam">Malayalam</option>
+                                </select>
+                            </div>
+
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                                 <textarea
                                     required
@@ -131,34 +179,76 @@ export default function Resources() {
                                 />
                             </div>
 
-                            {formData.type !== 'article' ? (
+                            <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Media URL</label>
-                                    <input
-                                        required
-                                        value={formData.url}
-                                        onChange={e => setFormData({ ...formData, url: e.target.value })}
-                                        className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500"
-                                        placeholder="https://..."
-                                    />
-                                    <p className="text-xs text-gray-500 mt-1">Direct link to hosted video/audio file</p>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        {formData.type === 'article' ? 'Header Image (Optional)' : 'Media File'}
+                                    </label>
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                accept={formData.type === 'video' ? 'video/*' : formData.type === 'audio' ? 'audio/*' : 'image/*'}
+                                                onChange={e => setSelectedFile(e.target.files ? e.target.files[0] : null)}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            />
+                                            <button type="button" className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                                                <ImageIcon size={18} />
+                                                {selectedFile ? 'Change File' : 'Upload File'}
+                                            </button>
+                                        </div>
+                                        {selectedFile && (
+                                            <span className="text-sm text-gray-600 truncate max-w-[200px]">{selectedFile.name}</span>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        {formData.type === 'article'
+                                            ? 'Upload a cover image for your article.'
+                                            : 'Upload your video or audio file directly.'}
+                                    </p>
                                 </div>
-                            ) : (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Article Content</label>
-                                    <textarea
-                                        required
-                                        value={formData.content}
-                                        onChange={e => setFormData({ ...formData, content: e.target.value })}
-                                        className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 h-64 font-mono text-sm"
-                                        placeholder="# Write your article here (Markdown supported)..."
-                                    />
-                                </div>
-                            )}
+
+                                {formData.type !== 'article' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Direct URL (Alternative)</label>
+                                        <input
+                                            value={formData.url}
+                                            onChange={e => setFormData({ ...formData, url: e.target.value })}
+                                            className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+                                            placeholder="https://..."
+                                            disabled={!!selectedFile}
+                                        />
+                                    </div>
+                                )}
+
+                                {formData.type === 'article' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Article Content</label>
+                                        <textarea
+                                            required
+                                            value={formData.content}
+                                            onChange={e => setFormData({ ...formData, content: e.target.value })}
+                                            className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500 h-64 font-mono text-sm"
+                                            placeholder="# Write your article here (Markdown supported)..."
+                                        />
+                                    </div>
+                                )}
+                            </div>
 
                             <div className="flex justify-end pt-4">
-                                <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium">
-                                    Submit for Review
+                                <button
+                                    type="submit"
+                                    disabled={isUploading || !formData.title || !formData.description}
+                                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                >
+                                    {isUploading ? (
+                                        <>
+                                            <Loader2 className="animate-spin" size={20} />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        'Submit for Review'
+                                    )}
                                 </button>
                             </div>
                         </form>

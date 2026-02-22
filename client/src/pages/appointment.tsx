@@ -41,6 +41,7 @@ interface Counselor {
   specialty: string;
   reviews: number;
   image: string;
+  meeting_location: string;
 }
 
 interface Appointment {
@@ -50,6 +51,7 @@ interface Appointment {
   mode: string;
   description: string;
   status: string;
+  location?: string;
 }
 
 const BookingPage: React.FC = () => {
@@ -194,6 +196,7 @@ const BookingPage: React.FC = () => {
           mode: mode,
           description: notes,
           status: data.appointment.status,
+          location: selectedCounselorDetails.meeting_location
         });
         setStep(3);
       } else {
@@ -343,6 +346,15 @@ const BookingPage: React.FC = () => {
                   ))}
                 </div>
 
+                {mode === "Personal Meeting" && selectedCounselorDetails?.meeting_location && (
+                  <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h4 className="font-semibold text-yellow-800 mb-1 flex items-center gap-2">
+                      <User size={18} /> Meeting Location
+                    </h4>
+                    <p className="text-yellow-700">{selectedCounselorDetails.meeting_location}</p>
+                  </div>
+                )}
+
                 <textarea
                   placeholder="Additional notes..."
                   value={notes}
@@ -375,6 +387,9 @@ const BookingPage: React.FC = () => {
                 <p className="mb-2">Date: {appointment.date}</p>
                 <p className="mb-2">Time: {appointment.time}</p>
                 <p className="mb-2">Mode: {appointment.mode}</p>
+                {appointment.mode === "Personal Meeting" && appointment.location && (
+                  <p className="mb-2 text-blue-600"><strong>Location:</strong> {appointment.location}</p>
+                )}
                 <p className="mb-6">Status: {appointment.status}</p>
 
                 <div className="flex justify-center gap-4">

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { useLocation } from "wouter";
+import logo from "../../../public/logo1.jpeg";
 
 export default function CounsellorSidebar() {
   const [open, setOpen] = useState(true);
@@ -48,7 +49,7 @@ export default function CounsellorSidebar() {
       {/* Header */}
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src="brain_1757354497739.jpg" alt="logo" className="w-8 h-8" />
+          <img src={logo} alt="Zenture" className=" rounded-full w-10 h-10 object-contain" />
           {open && <span className="font-bold text-lg">Zenture</span>}
         </div>
         <button

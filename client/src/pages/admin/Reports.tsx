@@ -21,9 +21,9 @@ const Reports: React.FC = () => {
         avgSessionDuration: "0 min"
     });
 
-    // State for charts
     const [engagementData, setEngagementData] = useState<any>(null);
     const [moodData, setMoodData] = useState<any[]>([]);
+    const [assessmentData, setAssessmentData] = useState<any[]>([]);
 
     const { toast } = useToast();
 
@@ -95,28 +95,58 @@ const Reports: React.FC = () => {
         );
     };
 
+    const AssessmentResultsChart = ({ data }: { data: { test: string, count: number }[] }) => {
+        const chartHeight = 200;
+        const chartWidth = 500;
+        const maxCount = Math.max(...data.map(d => d.count), 5);
+        const barWidth = (chartWidth / (data.length || 1)) * 0.4;
+
+        return (
+            <svg viewBox={`0 0 ${chartWidth} ${chartHeight + 30}`} className="w-full">
+                {data.map((d, index) => {
+                    const barX = (chartWidth / data.length) * index + (chartWidth / data.length - barWidth) / 2;
+                    const barHeight = (d.count / maxCount) * chartHeight;
+
+                    return (
+                        <g key={index}>
+                            <rect x={barX} y={chartHeight - barHeight} width={barWidth} height={barHeight} fill="#8b5cf6" rx="4" />
+                            <text x={barX + barWidth / 2} y={chartHeight + 15} textAnchor="middle" fontSize="12" fill="#4b5563">
+                                {d.test}
+                            </text>
+                            <text x={barX + barWidth / 2} y={chartHeight - barHeight - 5} textAnchor="middle" fontSize="12" fill="#8b5cf6" fontWeight="bold">
+                                {d.count}
+                            </text>
+                        </g>
+                    );
+                })}
+            </svg>
+        );
+    };
+
     useEffect(() => {
         const storedUsername = localStorage.getItem("username");
         if (storedUsername) {
             setUsername(storedUsername);
         }
-        fetchOverview();
+        fetchData();
     }, []);
 
-    const fetchOverview = async () => {
+    const fetchData = async () => {
         try {
             const token = localStorage.getItem("authToken");
-            const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+            const headers = { Authorization: `Bearer ${token}` };
 
-            const [overviewRes, engageRes, moodRes] = await Promise.all([
+            const [ovRes, enRes, moRes, asRes] = await Promise.all([
                 fetch(`${apiConfig.baseUrl}/admin/analytics/overview`, { headers }),
                 fetch(`${apiConfig.baseUrl}/admin/analytics/engagement`, { headers }),
-                fetch(`${apiConfig.baseUrl}/admin/analytics/mood`, { headers })
+                fetch(`${apiConfig.baseUrl}/admin/analytics/mood`, { headers }),
+                fetch(`${apiConfig.baseUrl}/admin/analytics/assessments`, { headers })
             ]);
 
-            if (overviewRes.ok) setOverview(await overviewRes.json());
-            if (engageRes.ok) setEngagementData(await engageRes.json());
-            if (moodRes.ok) setMoodData(await moodRes.json());
+            if (ovRes.ok) setOverview(await ovRes.json());
+            if (enRes.ok) setEngagementData(await enRes.json());
+            if (moRes.ok) setMoodData(await moRes.json());
+            if (asRes.ok) setAssessmentData(await asRes.json());
 
         } catch (e) {
             console.error(e);
@@ -137,16 +167,16 @@ const Reports: React.FC = () => {
                     <p className="text-gray-500">Loading analytics...</p>
                 </div>
             ) : (
-                <>
+                <div className="space-y-8">
                     {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <p className="text-gray-500 text-sm">Total Users</p>
                                     <h3 className="text-2xl font-bold text-gray-800 mt-1">{overview.totalUsers}</h3>
                                 </div>
-                                <Users className="text-blue-100" size={24} color="#3b82f6" />
+                                <Users className="text-blue-500" size={24} />
                             </div>
                         </div>
                         <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
@@ -155,7 +185,7 @@ const Reports: React.FC = () => {
                                     <p className="text-gray-500 text-sm">Active Users (30d)</p>
                                     <h3 className="text-2xl font-bold text-gray-800 mt-1">{overview.activeUsers}</h3>
                                 </div>
-                                <Activity className="text-green-100" size={24} color="#22c55e" />
+                                <Activity className="text-green-500" size={24} />
                             </div>
                         </div>
                         <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-purple-500">
@@ -164,7 +194,7 @@ const Reports: React.FC = () => {
                                     <p className="text-gray-500 text-sm">Total Sessions</p>
                                     <h3 className="text-2xl font-bold text-gray-800 mt-1">{overview.totalSessions}</h3>
                                 </div>
-                                <Stethoscope className="text-purple-100" size={24} color="#a855f7" />
+                                <Stethoscope className="text-purple-500" size={24} />
                             </div>
                         </div>
                         <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-orange-500">
@@ -173,7 +203,7 @@ const Reports: React.FC = () => {
                                     <p className="text-gray-500 text-sm">Avg Session Duration</p>
                                     <h3 className="text-2xl font-bold text-gray-800 mt-1">{overview.avgSessionDuration}</h3>
                                 </div>
-                                <Calendar className="text-orange-100" size={24} color="#f97316" />
+                                <Calendar className="text-orange-500" size={24} />
                             </div>
                         </div>
                     </div>
@@ -237,7 +267,20 @@ const Reports: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                </>
+
+                    <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                        <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                            <Stethoscope className="text-purple-500" /> Screening Test Participation
+                        </h3>
+                        <div className="h-64 flex flex-col items-center justify-center">
+                            {assessmentData.length > 0 ? (
+                                <AssessmentResultsChart data={assessmentData} />
+                            ) : (
+                                <p className="text-gray-500">No screening data available yet.</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
             )}
         </AdminLayout>
     );

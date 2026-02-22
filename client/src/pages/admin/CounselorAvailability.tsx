@@ -23,6 +23,7 @@ interface Counselor {
   };
   contact: string;
   image: string;
+  meeting_location: string;
 }
 
 const CounselorAvailability: React.FC = () => {
@@ -43,7 +44,8 @@ const CounselorAvailability: React.FC = () => {
     specialization: "",
     days: [] as string[],
     startTime: "09:00",
-    endTime: "17:00"
+    endTime: "17:00",
+    meetingLocation: ""
   });
 
   const { toast } = useToast();
@@ -91,7 +93,8 @@ const CounselorAvailability: React.FC = () => {
       specialization: "",
       days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
       startTime: "09:00",
-      endTime: "17:00"
+      endTime: "17:00",
+      meetingLocation: ""
     });
     setIsModalOpen(true);
   };
@@ -109,7 +112,8 @@ const CounselorAvailability: React.FC = () => {
       specialization: counselor.specialization,
       days: counselor.availability.days || [],
       startTime: start || "09:00",
-      endTime: end || "17:00"
+      endTime: end || "17:00",
+      meetingLocation: counselor.meeting_location || ""
     });
     setIsModalOpen(true);
   };
@@ -139,7 +143,8 @@ const CounselorAvailability: React.FC = () => {
         availability: {
           days: formData.days,
           timeRange: `${formData.startTime}-${formData.endTime}`
-        }
+        },
+        meeting_location: formData.meetingLocation
       };
 
       if (formData.password) {
@@ -296,6 +301,16 @@ const CounselorAvailability: React.FC = () => {
                     value={formData.specialization}
                     onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
                     className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Meeting Location</label>
+                  <input
+                    type="text"
+                    value={formData.meetingLocation}
+                    onChange={(e) => setFormData({ ...formData, meetingLocation: e.target.value })}
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="Enter physical address for personal meetings"
                   />
                 </div>
               </div>
