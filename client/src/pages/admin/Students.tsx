@@ -51,6 +51,32 @@ const Students: React.FC = () => {
         }
     };
 
+    const handleMakeModerator = async (targetUsername: string) => {
+        if (!window.confirm(`Are you sure you want to make ${targetUsername} a Moderator? They will be removed from this list.`)) return;
+
+        try {
+            const token = localStorage.getItem("authToken");
+            const res = await fetch(`${apiConfig.baseUrl}/admin/assign_moderator`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ username: targetUsername })
+            });
+            if (res.ok) {
+                toast({ title: `${targetUsername} is now a Moderator!` });
+                fetchStudents(currentPage);
+            } else {
+                const data = await res.json();
+                toast({ title: data.msg || "Failed to assign moderator", variant: "destructive" });
+            }
+        } catch (error) {
+            console.error("Error assigning moderator:", error);
+            toast({ title: "Error assigning moderator", variant: "destructive" });
+        }
+    };
+
     return (
         <AdminLayout
             title="Student Directory"
@@ -88,9 +114,15 @@ const Students: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
-                                {/* Footer / Action (Placeholder) */}
-                                <div className="bg-gray-50 p-3 border-t border-gray-100 flex justify-center">
+                                {/* Footer / Action */}
+                                <div className="bg-gray-50 p-3 border-t border-gray-100 flex justify-between items-center">
                                     <span className="text-xs text-gray-400">Daily Activity Summary</span>
+                                    <button
+                                        onClick={() => handleMakeModerator(student.username)}
+                                        className="text-xs font-medium text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded transition-colors"
+                                    >
+                                        Make Moderator
+                                    </button>
                                 </div>
                             </div>
                         ))}

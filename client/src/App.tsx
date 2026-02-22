@@ -25,6 +25,7 @@ import SettingsPage from "./pages/admin/Setting";
 import Students from "./pages/admin/Students";
 import Reports from "./pages/admin/Reports";
 import Resources from "./pages/admin/ResourceManagement";
+import AdminCommunities from "./pages/admin/Communities";
 import AdminRegister from "./pages/adminRegister";
 import ForgotUsername from "./pages/ForgotUsename";
 import CounsellorRegister from "./pages/CounsellorRegister";
@@ -68,6 +69,7 @@ function Router() {
       {/* Admin Routes */}
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/students" component={Students} />
+      <Route path="/admin/communities" component={AdminCommunities} />
       <Route path="/admin/crisis-escalation" component={CrisisEscalation} />
       <Route path="/admin/counselor-availability" component={CounselorAvailability} />
       <Route path="/admin/resources" component={Resources} />

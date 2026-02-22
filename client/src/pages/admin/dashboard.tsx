@@ -209,6 +209,9 @@ export default function AdminDashboard() {
   const [engagementData, setEngagementData] = useState<{ newUsers: ChartDataPoint[], activeSessions: ChartDataPoint[] } | null>(null);
   const [moodData, setMoodData] = useState<AnxietyDataPoint[]>([]);
   const [resourceData, setResourceData] = useState<any[]>([]);
+  const [overviewData, setOverviewData] = useState<any>(null);
+  const [counselorStatus, setCounselorStatus] = useState<any>(null);
+  const [forumActivity, setForumActivity] = useState<any>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(true);
 
   const languageData: PieChartDataPoint[] = [
@@ -241,17 +244,23 @@ export default function AdminDashboard() {
 
       try {
         // Parallel fetch for all dashboard data
-        const [appointRes, engageRes, moodRes, resourceRes] = await Promise.all([
+        const [appointRes, engageRes, moodRes, resourceRes, overviewRes, counselorRes, forumRes] = await Promise.all([
           fetch(`${apiConfig.baseUrl}/admin/upcoming-appointments`, { headers }),
           fetch(`${apiConfig.baseUrl}/admin/analytics/engagement`, { headers }),
           fetch(`${apiConfig.baseUrl}/admin/analytics/mood`, { headers }),
-          fetch(`${apiConfig.baseUrl}/admin/analytics/resources`, { headers })
+          fetch(`${apiConfig.baseUrl}/admin/analytics/resources`, { headers }),
+          fetch(`${apiConfig.baseUrl}/admin/analytics/overview`, { headers }),
+          fetch(`${apiConfig.baseUrl}/admin/analytics/counselors-status`, { headers }),
+          fetch(`${apiConfig.baseUrl}/admin/analytics/forum-activity`, { headers })
         ]);
 
         if (appointRes.ok) setUpcomingAppointments(await appointRes.json());
         if (engageRes.ok) setEngagementData(await engageRes.json());
         if (moodRes.ok) setMoodData(await moodRes.json());
         if (resourceRes.ok) setResourceData(await resourceRes.json());
+        if (overviewRes.ok) setOverviewData(await overviewRes.json());
+        if (counselorRes.ok) setCounselorStatus(await counselorRes.json());
+        if (forumRes.ok) setForumActivity(await forumRes.json());
 
       } catch (error: any) {
         console.error("Dashboard fetch error:", error);
@@ -306,7 +315,9 @@ export default function AdminDashboard() {
               <h3 className="text-xl font-bold">Urgent Action Required</h3>
               <AlertTriangle size={32} className="text-red-200" />
             </div>
-            <p className="text-5xl font-extrabold mt-2">0</p>
+            <p className="text-5xl font-extrabold mt-2 hover:animate-pulse cursor-pointer">
+              {loadingAnalytics ? "..." : (overviewData?.unacknowledgedAlerts || 0)}
+            </p>
             <p className="opacity-90 mt-1">Unacknowledged High-Risk Alerts</p>
             <button className="mt-6 bg-white text-red-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors shadow-md">
               Review Now
@@ -342,17 +353,19 @@ export default function AdminDashboard() {
           {/* Counselor Status Card */}
           <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
             <h3 className="text-xl font-bold text-gray-800 mb-4">Counselor Status at a Glance</h3>
-            <div className="space-y-2 text-gray-700">
-              <p>
-                Counselors Online: <span className="font-bold text-green-600">--</span>
-              </p>
-              <p>
-                Available Now: <span className="font-bold text-green-600">--</span>
-              </p>
-              <p>
-                Avg. Wait Time: <span className="font-bold">~2 mins</span>
-              </p>
-            </div>
+            {loadingAnalytics ? <p className="text-gray-500">Loading...</p> : (
+              <div className="space-y-2 text-gray-700">
+                <p>
+                  Counselors Online: <span className="font-bold text-green-600">{counselorStatus?.online || 0}</span>
+                </p>
+                <p>
+                  Available Now: <span className="font-bold text-green-600">{counselorStatus?.available || 0}</span>
+                </p>
+                <p>
+                  Avg. Wait Time: <span className="font-bold">{counselorStatus?.avgWaitTime || "~2 mins"}</span>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -442,11 +455,13 @@ export default function AdminDashboard() {
           {/* Peer Support Forum Card */}
           <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
             <h3 className="text-xl font-bold text-gray-800 mb-4">Peer Support Forum Activity</h3>
-            <div className="space-y-2 text-gray-700">
-              <p>New Posts (24h): <span className="font-bold text-blue-600">--</span></p>
-              <p>Unmoderated Posts: <span className="font-bold text-yellow-600">--</span></p>
-              <p>Active Threads: <span className="font-bold">--</span></p>
-            </div>
+            {loadingAnalytics ? <p className="text-gray-500">Loading...</p> : (
+              <div className="space-y-2 text-gray-700">
+                <p>New Posts (24h): <span className="font-bold text-blue-600">{forumActivity?.newPosts24h || 0}</span></p>
+                <p>Unmoderated Posts: <span className="font-bold text-yellow-600">{forumActivity?.unmoderatedPosts || 0}</span></p>
+                <p>Active Threads: <span className="font-bold">{forumActivity?.activeThreads || 0}</span></p>
+              </div>
+            )}
           </div>
         </div>
       </section>
