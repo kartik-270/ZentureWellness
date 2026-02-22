@@ -96,13 +96,14 @@ export default function HeroSection() {
           </div>
 
           <div className="flex justify-center lg:justify-end">
-            <div className="relative group">
-              <img
-                src={brain}
-                alt="Mental Wellness"
-                width={400}
-                height={600}
-                className="
+  <div className="relative group">
+    <img
+      src={brain}
+      alt="Mental Wellness"
+      width={400}
+      height={600}
+      className="
+      hidden md:block object-cover
         w-[32vw] h-[38vh] rounded-lg
         transition-all duration-500 ease-in-out
         group-hover:scale-105

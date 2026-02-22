@@ -225,7 +225,7 @@ export default function CounsellorDashboard() {
               </aside>
             </div>
 
-            <div className="bg-white/80 p-6 rounded-2xl shadow lg:col-start-3 lg:row-start-1">
+            <div className="bg-gradient-to-r from-blue-600 to-cyan-500 text-black shadow-md p-6 rounded-2xl shadow lg:col-start-3 lg:row-start-1">
               {/* Right Column Content - moved here to match grid layout */}
               <h3 className="text-lg font-semibold mb-4">Client List ({clients.length})</h3>
               <div className="space-y-3">
