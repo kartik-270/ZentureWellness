@@ -1,3 +1,4 @@
+// home.tsx
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -9,6 +10,15 @@ import Footer from "@/components/footer";
 import AiChatBubble from '@/components/AiChatBubble';
 // import BotpressChatbot from '@/components/botpress-chatbot';
 
+declare global {
+  interface Window {
+    botpressWebChat: {
+      sendEvent: (event: { type: string; payload?: any }) => void;
+    };
+  }
+}
+
+// Augment the global Window interface to include botpressWebChat
 declare global {
   interface Window {
     botpressWebChat: {
@@ -66,7 +76,7 @@ export default function Home() {
           aria-hidden="true"
         />
       )}
-
+      
       <div className="relative z-10">
         <HeroSection />
         <QuickLinks onChatTrigger={handleChatTrigger} />
