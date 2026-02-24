@@ -111,7 +111,7 @@ export default function Navbar() {
                 </Link>
 
                 <Link href="/signup">
-                  <Button className="rounded-full px-7 bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md hover:shadow-lg hover:scale-105 transition">
+                  <Button className="rounded-full px-7 bg-gradient-to-r from-blue-400 to-cyan-200 text-white shadow-md hover:shadow-lg hover:scale-105 transition">
                     Sign up
                   </Button>
                 </Link>
@@ -183,7 +183,7 @@ export default function Navbar() {
                   </Link>
 
                   <Link href="/signup" onClick={() => setMobileOpen(false)}>
-                    <Button className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white">
+                    <Button className="w-full bg-gradient-to-r from-blue-400 to-cyan-200 text-white">
                       Sign up
                     </Button>
                   </Link>

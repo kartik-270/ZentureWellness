@@ -44,9 +44,9 @@ export default function Footer() {
             <span className="text-muted-foreground">Available In :</span>
             <a href="#" className="text-foreground hover:text-primary transition-colors font-medium">English</a>
             <span className="text-muted-foreground">|</span>
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Hindi</a>
+            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">German</a>
             <span className="text-muted-foreground">|</span>
-            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Tamil</a>
+            <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Hindi</a>
             <span className="text-muted-foreground">|</span>
           </div>
 

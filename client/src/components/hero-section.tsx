@@ -87,7 +87,7 @@ export default function HeroSection() {
                   Positive mental health is helping people live happier, healthier and longer lives.
                 </p>
                 <a href="/signup">
-                  <Button className="px-8 my-7 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md hover:shadow-lg hover:scale-105 transition">
+                  <Button className="px-8 my-7 rounded-full bg-gradient-to-r from-blue-500 to-cyan-300 text-white shadow-md hover:shadow-lg hover:scale-105 transition">
                     Start your Journey Today
                   </Button>
                 </a>

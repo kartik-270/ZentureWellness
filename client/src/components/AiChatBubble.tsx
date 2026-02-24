@@ -406,7 +406,7 @@ const AiChatBubble: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-full shadow-lg flex items-center justify-center text-white ring-4 ring-white"
+                className="w-14 h-14 bg-gradient-to-tr from-blue-500 to-cyan-300 rounded-full shadow-lg flex items-center justify-center text-white ring-4 ring-white"
             >
                 {isOpen ? <X size={28} /> : <MessageCircle size={28} />}
             </motion.button>
