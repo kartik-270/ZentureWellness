@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from "@/components/navbar";
 import HeroSection from "@/components/hero-section";
+import DailyCheckIn from "@/components/dailycheckin";
 import QuickLinks from "@/components/quick-links";
 import PlatformFeatures from "@/components/platform-features";
 import Footer from "@/components/footer";
@@ -78,6 +79,7 @@ export default function Home() {
 
       <div className="relative z-10">
         <HeroSection />
+        <DailyCheckIn />
         <QuickLinks onChatTrigger={handleChatTrigger} />
         <PlatformFeatures />
         <Footer />

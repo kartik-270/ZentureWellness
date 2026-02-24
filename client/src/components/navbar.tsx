@@ -3,10 +3,12 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import logo from "../../../public/logo1.jpeg";
+import { apiConfig } from "@/lib/config";
 
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
+  const [streak, setStreak] = useState<number | null>(null);
   const [location, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -17,6 +19,21 @@ export default function Navbar() {
     if (token && storedUsername) {
       setIsLoggedIn(true);
       setUsername(storedUsername);
+
+      const getStreak = () => {
+        fetch(`${apiConfig.baseUrl}/user/streak`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        })
+          .then(res => res.json())
+          .then(data => setStreak(data.streak))
+          .catch(err => console.error("Streak fetch error:", err));
+      };
+
+      getStreak();
+
+      // Listen for streak updates from other components
+      window.addEventListener('streak-updated', getStreak);
+      return () => window.removeEventListener('streak-updated', getStreak);
     }
   }, []);
 
@@ -49,7 +66,7 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-border shadow-sm">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex h-16 md:h-20 items-center justify-between">
-          
+
           {/* Logo */}
           <div className="flex items-center gap-3">
             <img src={logo} alt="Zenture" className="w-10 h-10 object-contain" />
@@ -71,7 +88,11 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             {isLoggedIn ? (
               <>
-                <span className="text-sm font-medium text-muted-foreground">
+                <div className="flex items-center gap-2 bg-orange-50 px-3 py-1 rounded-full border border-orange-100">
+                  <span className="text-orange-600">🔥</span>
+                  <span className="text-sm font-bold text-orange-700">{streak ?? 0}</span>
+                </div>
+                <span className="text-sm font-medium text-muted-foreground ml-2">
                   Hi, {username}
                 </span>
                 <Button
@@ -139,6 +160,10 @@ export default function Navbar() {
             <div className="pt-4 border-t space-y-3">
               {isLoggedIn ? (
                 <>
+                  <div className="flex items-center gap-2 bg-orange-50 w-fit px-3 py-1 rounded-full border border-orange-100 mb-2">
+                    <span className="text-orange-600">🔥</span>
+                    <span className="text-sm font-bold text-orange-700">{streak ?? 0} days streak</span>
+                  </div>
                   <p className="text-sm text-muted-foreground">
                     Hi, {username}
                   </p>

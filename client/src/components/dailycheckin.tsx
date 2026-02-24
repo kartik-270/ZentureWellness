@@ -1,144 +1,206 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-// Assuming you have a 'Button' component from a UI library like shadcn/ui
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { apiConfig } from "@/lib/config";
+import MoodCheckinModal from "./MoodCheckinModal";
+import { Sparkles, BarChart3, Clock } from "lucide-react";
 
-type Mood = {
-    name: "Excellent" | "Good" | "Okay" | "Stressed" | "Sad";
-    emoji: string;
-    suggestion: string;
-    actionText: string;
-    actionLink: string;
-};
-
-const moods: Mood[] = [
-    { name: "Excellent", emoji: "😊", suggestion: "That's great to hear! Let's capture this feeling. What's one good thing that happened today?", actionText: "Add a Gratitude Note", actionLink: "/journal/new?template=gratitude" },
-    { name: "Good", emoji: "🙂", suggestion: "Glad you're having a good day. How about exploring a new topic to keep the momentum going?", actionText: "Explore Resources", actionLink: "/psychoeducational-hub" },
-    { name: "Okay", emoji: "😐", suggestion: "Some days are just okay, and that's perfectly fine. A short walk can often lift the spirits.", actionText: "Read About Mindfulness", actionLink: "/psychoeducational-hub/article/mindfulness-walk" },
-    { name: "Stressed", emoji: "😟", suggestion: "It looks like things are a bit stressful. Let's take a moment to reset with a guided exercise.", actionText: "Try a 5-Min Breathing Exercise", actionLink: "/psychoeducational-hub/audio/breathing-exercise" },
-    { name: "Sad", emoji: "😥", suggestion: "We're sorry you're feeling down. Journaling can be a helpful way to process your thoughts.", actionText: "Write a Private Journal Entry", actionLink: "/journal/new" },
-];
+interface MoodCheckinData {
+    mood: string;
+    intensity: number;
+    timestamp: string;
+}
 
 export default function DailyCheckIn() {
-    const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [hasCheckedInToday, setHasCheckedInToday] = useState(false);
+    const [checkinCount, setCheckinCount] = useState(0);
+    const [latestMood, setLatestMood] = useState<MoodCheckinData | null>(null);
+    const [allCheckins, setAllCheckins] = useState<MoodCheckinData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isUpdating, setIsUpdating] = useState(false);
 
-    // Check the user's check-in status when the component mounts
-    useEffect(() => {
-        const checkStatus = async () => {
-            try {
-                const token = localStorage.getItem("authToken"); // Use your actual auth token key
-                if (!token) {
-                    setIsLoading(false);
-                    return; // Not logged in, can't check status
-                }
-
-                const response = await fetch(`${apiConfig.baseUrl}/mood-checkin/today-status`, {
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setHasCheckedInToday(data.hasCheckedIn);
-                }
-            } catch (error) {
-                console.error("Error checking mood status:", error);
-            } finally {
+    const checkStatus = async () => {
+        try {
+            const token = localStorage.getItem("authToken");
+            if (!token) {
                 setIsLoading(false);
+                return;
             }
-        };
 
+            const response = await fetch(`${apiConfig.baseUrl}/mood-checkin/today-status`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log("DEBUG: Mood checkin status:", data);
+                setHasCheckedInToday(data.hasCheckedIn);
+                setCheckinCount(data.count || 0);
+                setLatestMood(data.latest || null);
+                setAllCheckins(data.allCheckins || []);
+            }
+        } catch (error) {
+            console.error("Error checking mood status:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
         checkStatus();
     }, []);
 
-    const handleMoodSelect = async (mood: Mood) => {
-        setSelectedMood(mood);
-        setIsSubmitting(true);
+    const handleSuccess = (summary: string) => {
+        checkStatus(); // Refresh status after successful check-in
+    };
 
+    const handleQuickLog = async (mood: string) => {
+        setIsUpdating(true);
         try {
             const token = localStorage.getItem("authToken");
-            if (!token) throw new Error("User not authenticated");
-
             const response = await fetch(`${apiConfig.baseUrl}/mood-checkin`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({ mood: mood.name }), // Date is handled by the backend
+                body: JSON.stringify({ mood })
             });
 
-            if (response.status === 409) { // 409 Conflict: Already checked in
-                setHasCheckedInToday(true);
-                return;
+            if (response.ok) {
+                await checkStatus();
+                // Brief delay for feedback
+                setTimeout(() => setIsUpdating(false), 1000);
+            } else {
+                setIsUpdating(false);
             }
-
-            if (!response.ok) throw new Error("Failed to save mood");
-
-            // On successful submission, update the UI
-            setHasCheckedInToday(true);
-
         } catch (error) {
-            console.error("Error saving mood:", error);
-            // Revert selection if there was an error
-            setSelectedMood(null);
-        } finally {
-            setIsSubmitting(false);
+            console.error("Quick log error:", error);
+            setIsUpdating(false);
         }
     };
 
-    if (isLoading) {
-        return (
-            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                <div className="bg-card gradient-bg border border-border rounded-2xl p-6 md:p-8 text-center shadow-sm h-48 flex items-center justify-center">
-                    <p>Loading...</p>
-                </div>
-            </section>
-        );
-    }
+    if (isLoading) return null;
 
     return (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-            <div className="bg-card gradient-bg border border-border rounded-2xl p-6 md:p-8 text-center shadow-sm">
-                <h2 className="text-2xl font-bold text-foreground mb-4">
-                    {hasCheckedInToday ? "Thanks for checking in!" : "How are you feeling today?"}
-                </h2>
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full my-12">
+            <div className="relative group overflow-hidden">
+                {/* Decorative background elements */}
+                <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-blue-100 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity" />
+                <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-indigo-50 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity" />
 
-                {hasCheckedInToday ? (
-                    <div className="animate-fade-in">
-                        <p className="text-muted-foreground">You've completed your check-in for today. Come back tomorrow!</p>
-                        <p className="text-4xl mt-4">👍</p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="flex justify-center items-center gap-2 md:gap-4 flex-wrap mb-6">
-                            {moods.map((mood) => (
-                                <button
-                                    key={mood.name}
-                                    onClick={() => handleMoodSelect(mood)}
-                                    disabled={isSubmitting}
-                                    className={`flex flex-col items-center p-3 rounded-lg w-20 h-20 transition-all duration-200 border-2 disabled:opacity-50 ${selectedMood?.name === mood.name ? 'border-primary bg-primary/20 scale-110' : 'border-transparent hover:bg-muted'}`}
-                                    aria-pressed={selectedMood?.name === mood.name}
-                                >
-                                    <span className="text-3xl mb-1">{mood.emoji}</span>
-                                    <span className="text-xs font-medium text-muted-foreground">{mood.name}</span>
-                                </button>
-                            ))}
+                <div className="relative bg-white/80 backdrop-blur-md border border-blue-100 shadow-xl rounded-[2rem] p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="flex-1 space-y-4 text-center md:text-left">
+                        <div className="inline-flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-100 text-blue-600 font-bold text-xs uppercase tracking-wider">
+                            <Sparkles size={14} className="animate-pulse" />
+                            {hasCheckedInToday ? "Daily Journey" : "Self-Care Daily"}
                         </div>
+                        <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                            {hasCheckedInToday ? "Is there any mood change?" : "How's your mood today?"}
+                        </h2>
+                        <p className="text-lg text-slate-600 max-w-lg">
+                            {hasCheckedInToday
+                                ? `You've logged ${checkinCount} ${checkinCount === 1 ? 'mood' : 'moods'} today. Each data point helps refine your wellness journey.`
+                                : "Take 30 seconds to log your feelings and get a personalized wellness analysis."
+                            }
+                        </p>
 
-                        {selectedMood && !hasCheckedInToday && (
-                            <div className="bg-background/70 rounded-lg p-6 max-w-2xl mx-auto text-center animate-fade-in">
-                                <p className="text-muted-foreground mb-4">{selectedMood.suggestion}</p>
-                                <a href={selectedMood.actionLink}><Button>{selectedMood.actionText}</Button></a>
+                        {hasCheckedInToday && (
+                            <div className="flex items-center gap-4 text-sm font-medium text-slate-500 justify-center md:justify-start">
+                                <span className="flex items-center gap-1.5"><BarChart3 size={16} className="text-blue-500" /> Improvement tracked</span>
+                                <span className="flex items-center gap-1.5"><Clock size={16} className="text-blue-500" /> Last update: {latestMood?.timestamp ? new Date(latestMood.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently'}</span>
                             </div>
                         )}
-                    </>
-                )}
+                    </div>
+
+                    <div className="flex flex-col gap-3 w-full md:w-auto">
+                        {!hasCheckedInToday ? (
+                            <Button
+                                onClick={() => setIsModalOpen(true)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl px-10 py-8 text-lg font-bold shadow-lg shadow-blue-200 transition-all hover:scale-105"
+                            >
+                                Start Check-in
+                            </Button>
+                        ) : (
+                            <div className="space-y-4">
+                                <p className="text-sm font-bold text-blue-700 text-center uppercase tracking-widest flex items-center justify-center gap-2">
+                                    {isUpdating ? "Capturing..." : "Quickly capture mood"}
+                                    {isUpdating && <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping" />}
+                                </p>
+                                <div className="flex items-center gap-2 justify-center bg-blue-50/50 p-2 rounded-2xl border border-blue-100">
+                                    {[
+                                        { l: "Happy", e: "😊" },
+                                        { l: "Calm", e: "😌" },
+                                        { l: "Stressed", e: "😟" },
+                                        { l: "Sad", e: "😥" },
+                                        { l: "Anxious", e: "😰" }
+                                    ].map((m) => {
+                                        const isSelected = latestMood?.mood === m.l;
+                                        return (
+                                            <button
+                                                key={m.l}
+                                                onClick={() => handleQuickLog(m.l)}
+                                                disabled={isUpdating}
+                                                className={`w-12 h-12 flex items-center justify-center text-2xl rounded-xl transition-all hover:scale-110 active:scale-95 ${isSelected ? 'bg-white shadow-md border-2 border-blue-200 scale-110' : 'hover:bg-white/50 grayscale-[0.5] hover:grayscale-0'}`}
+                                                title={m.l}
+                                            >
+                                                {m.e}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {allCheckins.length > 0 && (
+                                    <div className="mt-8 pt-6 border-t border-blue-50">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Today's Journey</p>
+                                            <span className="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">{allCheckins.length} logs</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 overflow-x-auto pb-4 custom-scrollbar no-scrollbar scroll-smooth">
+                                            {allCheckins.map((c, i) => {
+                                                const moodEmojis: Record<string, string> = {
+                                                    'Happy': '😊', 'Calm': '😌', 'Stressed': '😟',
+                                                    'Sad': '😥', 'Anxious': '😰', 'Angry': '😠'
+                                                };
+                                                return (
+                                                    <div key={i} className="flex flex-col items-center gap-1.5 min-w-[60px] animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
+                                                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-blue-50 relative group/icon">
+                                                            {moodEmojis[c.mood] || '😐'}
+                                                        </div>
+                                                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg">
+                                                            {new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setIsModalOpen(true)}
+                                    className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-bold border-2 border-dashed border-blue-100 rounded-2xl py-6 mt-4 transition-all"
+                                >
+                                    + Add Detailed Log
+                                </Button>
+                            </div>
+                        )}
+                        <p className="text-center text-xs text-slate-400 font-medium italic">
+                            Private & Securely stored
+                        </p>
+                    </div>
+                </div>
             </div>
+
+            <MoodCheckinModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSuccess={handleSuccess}
+                isSimplified={hasCheckedInToday}
+            />
         </section>
     );
 }
