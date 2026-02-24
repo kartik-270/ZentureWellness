@@ -158,23 +158,25 @@ export default function DailyCheckIn() {
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Today's Journey</p>
                                             <span className="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">{allCheckins.length} logs</span>
                                         </div>
-                                        <div className="flex items-center gap-3 overflow-x-auto pb-4 custom-scrollbar no-scrollbar scroll-smooth">
-                                            {allCheckins.map((c, i) => {
-                                                const moodEmojis: Record<string, string> = {
-                                                    'Happy': '😊', 'Calm': '😌', 'Stressed': '😟',
-                                                    'Sad': '😥', 'Anxious': '😰', 'Angry': '😠'
-                                                };
-                                                return (
-                                                    <div key={i} className="flex flex-col items-center gap-1.5 min-w-[60px] animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
-                                                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-blue-50 relative group/icon">
-                                                            {moodEmojis[c.mood] || '😐'}
+                                        <div className="max-h-[180px] overflow-y-auto pr-2 py-2 custom-scrollbar">
+                                            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-6 gap-x-3 gap-y-4 px-1">
+                                                {allCheckins.map((c, i) => {
+                                                    const moodEmojis: Record<string, string> = {
+                                                        'Happy': '😊', 'Calm': '😌', 'Stressed': '😟',
+                                                        'Sad': '😥', 'Anxious': '😰', 'Angry': '😠'
+                                                    };
+                                                    return (
+                                                        <div key={i} className="flex flex-col items-center gap-1.5 animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
+                                                            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-xl shadow-sm border border-blue-50 relative group/icon hover:scale-110 transition-transform">
+                                                                {moodEmojis[c.mood] || '😐'}
+                                                            </div>
+                                                            <span className="text-[9px] font-bold text-slate-500 bg-slate-100/80 px-1.5 py-0.5 rounded-md whitespace-nowrap">
+                                                                {new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </span>
                                                         </div>
-                                                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg">
-                                                            {new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })}
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
                                     </div>
                                 )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -44,13 +44,27 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
     const [isSaving, setIsSaving] = useState(false);
     const [analysis, setAnalysis] = useState("");
 
+    // Reset state when modal closes
+    useEffect(() => {
+        if (!isOpen) {
+            setStep(1);
+            setMood("");
+            setIntensity(5);
+            setSleep("Good");
+            setSocial(false);
+            setEnergy("Medium");
+            setAnalysis("");
+        }
+    }, [isOpen]);
+
     const nextStep = () => setStep(prev => prev + 1);
     const prevStep = () => setStep(prev => prev - 1);
 
-    const handleSave = async () => {
+    const handleSave = async (quickMood?: string) => {
         setIsSaving(true);
         try {
             const token = localStorage.getItem("authToken");
+            const finalMood = quickMood || mood;
             const response = await fetch(`${apiConfig.baseUrl}/mood-checkin`, {
                 method: "POST",
                 headers: {
@@ -58,7 +72,7 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
                     "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    mood,
+                    mood: finalMood,
                     intensity,
                     sleep_quality: sleep,
                     social_interaction: social,
@@ -69,7 +83,7 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
             if (response.ok) {
                 const data = await response.json();
                 setAnalysis(data.analysis);
-                setStep(6);
+                if (!isSimplified) setStep(6); // Step 6 is already set in simplified mode
             }
         } catch (error) {
             console.error("Save error:", error);
@@ -96,7 +110,9 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
                             {step < 6 ? "Mood Check-in" : "Your Analysis"}
                         </DialogTitle>
                         <DialogDescription className="text-blue-700/70">
-                            {step < 6 ? `Step ${step} of 5` : "Assessment Results"}
+                            {step < 6
+                                ? (isSimplified ? "Quick Update" : `Step ${step} of 5`)
+                                : "Assessment Results"}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -109,10 +125,11 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
                                     <button
                                         key={m.label}
                                         onClick={() => {
+                                            if (isSaving) return;
                                             setMood(m.label);
                                             if (isSimplified) {
-                                                // Jump to loading/analysis immediately
-                                                handleSave();
+                                                // Simplified mode: Trigger save and jump to results
+                                                handleSave(m.label);
                                                 setStep(6);
                                             }
                                         }}
@@ -207,8 +224,15 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
                                         <CheckCircle2 size={20} />
                                         <span className="text-sm font-medium uppercase tracking-wider">Report Summary</span>
                                     </div>
-                                    <p className="text-lg leading-relaxed font-medium">
-                                        "{analysis}"
+                                    <p className="text-lg leading-relaxed font-medium min-h-[60px] flex items-center justify-center">
+                                        {isSaving && !analysis ? (
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                <span className="text-sm opacity-80">Generating personalized analysis...</span>
+                                            </div>
+                                        ) : (
+                                            `"${analysis || "Thanks for your check-in! Our experts are processing your wellness report."}"`
+                                        )}
                                     </p>
                                 </div>
                                 <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
@@ -239,7 +263,7 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
                             </Button>
                         ) : step === 5 ? (
                             <Button
-                                onClick={handleSave}
+                                onClick={() => handleSave()}
                                 disabled={isSaving}
                                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 rounded-full"
                             >
