@@ -26,7 +26,16 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
+    const role = localStorage.getItem("userRole");
     setAuthToken(token);
+
+    if (token && role) {
+      if (role === 'counselor') {
+        window.location.href = '/counsellor/dashboard';
+      } else if (role === 'admin') {
+        window.location.href = '/admin/dashboard';
+      }
+    }
   }, []);
 
   const handleChatFabClick = () => {

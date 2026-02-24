@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { Eye, EyeOff } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { apiConfig } from "@/lib/config";
 // --- UI Components ---
@@ -77,6 +78,9 @@ export default function Signup() {
         parentPhoneNumber: "",
         consent: false,
     });
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -167,7 +171,7 @@ export default function Signup() {
             localStorage.setItem("username", createData.username);
 
             setUsername(createData.username);
-            
+
             // --- MODIFICATION START ---
             const decodedToken = jwtDecode<TokenPayload>(loginData.access_token);
             const userRole = decodedToken.role;
@@ -185,7 +189,7 @@ export default function Signup() {
                 setStep(3);
             }
             // --- MODIFICATION END ---
-            
+
         } catch (err) {
             setError(err instanceof Error ? err.message : "An unknown error occurred during account creation.");
         } finally {
@@ -304,13 +308,39 @@ export default function Signup() {
                             <Label htmlFor="otp">Verification Code</Label>
                             <Input id="otp" type="text" placeholder="Enter 6-digit code" value={formData.otp} onChange={e => handleInputChange("otp", e.target.value)} />
                         </div>
-                        <div>
+                        <div className="relative">
                             <Label htmlFor="password">Password</Label>
-                            <Input id="password" type="password" placeholder="Create a strong password" value={formData.password} onChange={e => handleInputChange("password", e.target.value)} />
+                            <Input
+                                id="password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Create a strong password"
+                                value={formData.password}
+                                onChange={e => handleInputChange("password", e.target.value)}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 focus:outline-none"
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
                         </div>
-                        <div>
+                        <div className="relative">
                             <Label htmlFor="confirmPassword">Confirm Password</Label>
-                            <Input id="confirmPassword" type="password" placeholder="Confirm your password" value={formData.confirmPassword} onChange={e => handleInputChange("confirmPassword", e.target.value)} />
+                            <Input
+                                id="confirmPassword"
+                                type={showConfirmPassword ? "text" : "password"}
+                                placeholder="Confirm your password"
+                                value={formData.confirmPassword}
+                                onChange={e => handleInputChange("confirmPassword", e.target.value)}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 focus:outline-none"
+                            >
+                                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
                         </div>
                         <Button onClick={handleStep2Submit} disabled={isLoading || !formData.otp || !formData.password}>{isLoading ? "Verifying..." : "Create Account"}</Button>
                     </div>

@@ -28,12 +28,12 @@ const isSessionStarting = (appointmentDate: string) => {
   const appointmentTime = new Date(appointmentDate).getTime();
   const tenMinutesInMillis = 10 * 60 * 1000;
   // Show button 10 mins before and up to 50 mins after start time
-  return appointmentTime - now < tenMinutesInMillis && now - appointmentTime < 50 * 60 * 1000;
+  return appointmentTime - now < tenMinutesInMillis && now - appointmentTime < 45 * 60 * 1000;
 };
 
 const formatAppointments = (appointments: Appointment[]): Appointment[] => {
   const now = new Date();
-  const sessionDurationInMillis = 50 * 60 * 1000;
+  const sessionDurationInMillis = 45 * 60 * 1000;
 
   return appointments.map(app => {
     const appTime = new Date(app.date);
@@ -46,6 +46,7 @@ const formatAppointments = (appointments: Appointment[]): Appointment[] => {
     } else if (app.status === 'pending') {
       category = 'pending';
     } else if (isPast) {
+      // isPast is true if now > (appTime + 45 mins)
       category = 'completed';
     }
 

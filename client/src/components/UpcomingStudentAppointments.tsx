@@ -76,8 +76,17 @@ export default function UpcomingStudentAppointments() {
   const now = new Date();
   const sorted = [...appointments].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  const upcoming = sorted.filter(app => new Date(app.date) >= now);
-  const past = sorted.filter(app => new Date(app.date) < now).reverse(); // Most recent past first
+  const upcoming = sorted.filter(app => {
+    const appTime = new Date(app.date).getTime();
+    const fortyFiveMinutesInMillis = 45 * 60 * 1000;
+    // Session is upcoming or active (started less than 45 mins ago)
+    return appTime + fortyFiveMinutesInMillis >= now.getTime();
+  });
+  const past = sorted.filter(app => {
+    const appTime = new Date(app.date).getTime();
+    const fortyFiveMinutesInMillis = 45 * 60 * 1000;
+    return appTime + fortyFiveMinutesInMillis < now.getTime();
+  }).reverse(); // Most recent past first
 
   return (
     <section className="w-full max-w-4xl px-4 space-y-12">
@@ -90,30 +99,35 @@ export default function UpcomingStudentAppointments() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {upcoming.map(app => (
-              <div key={app.id} className="relative bg-white p-4 rounded-lg shadow-md transition-shadow hover:shadow-lg border-l-4 border-blue-500">
+              <div key={app.id} className="border-l-4 border-blue-500 rounded-lg overflow-hidden shadow-md transition-shadow hover:shadow-lg">
                 <SessionCard
                   title={`With ${app.counsellorName}`}
                   subtitle={`Mode: ${app.mode}`}
-                  meta={app.formattedTime}
+                  meta={
+                    <div className="flex flex-col items-end gap-2">
+                      {app.status === 'pending' && <span className="bg-yellow-100 text-yellow-800 text-[10px] font-semibold px-2 py-0.5 rounded">Pending Approval</span>}
+                      {app.status === 'booked' && <span className="bg-green-100 text-green-800 text-[10px] font-semibold px-2 py-0.5 rounded">Confirmed</span>}
+                      <div className="text-sm font-semibold text-gray-700">{app.formattedTime}</div>
+                    </div>
+                  }
+                  action={
+                    <>
+                      {app.status === 'booked' && isSessionStarting(app.date) && app.mode !== 'in_person' && (
+                        <button
+                          onClick={() => handleJoinSession(app.meeting_link)}
+                          className="w-full mt-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-all shadow-sm font-bold"
+                        >
+                          Join Session
+                        </button>
+                      )}
+                      {app.mode === 'in_person' && app.status === 'booked' && (
+                        <div className="w-full mt-1 px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-lg text-center font-medium border border-gray-200">
+                          In Person Location
+                        </div>
+                      )}
+                    </>
+                  }
                 />
-                <div className="absolute top-2 right-2">
-                  {app.status === 'pending' && <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded">Pending Approval</span>}
-                  {app.status === 'booked' && <span className="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">Confirmed</span>}
-                </div>
-
-                {app.status === 'booked' && isSessionStarting(app.date) && app.mode !== 'in_person' && (
-                  <button
-                    onClick={() => handleJoinSession(app.meeting_link)}
-                    className="absolute bottom-2 right-2 px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-all shadow"
-                  >
-                    Join Session
-                  </button>
-                )}
-                {app.mode === 'in_person' && app.status === 'booked' && (
-                  <div className="absolute bottom-2 right-2 px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded-md">
-                    In Person Location
-                  </div>
-                )}
               </div>
             ))}
           </div>

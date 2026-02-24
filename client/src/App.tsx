@@ -39,7 +39,7 @@ import Settings from "./pages/counsellor/Settings";
 import Chatbot from "./pages/Chatbot";
 import SessionPage from "./pages/SessionPage";
 import StudentMessages from "./pages/StudentMessages";
-
+import AiChatBubble from "./components/AiChatBubble";
 import ForgotPassword from "@/pages/ForgotPassword";
 
 function Router() {
@@ -99,6 +99,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
+        <AiChatBubble />
       </TooltipProvider>
     </QueryClientProvider>
   );

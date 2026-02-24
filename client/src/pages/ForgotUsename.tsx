@@ -102,7 +102,7 @@ const ForgotUsername = () => {
                             <Input
                                 id="email"
                                 type="email"
-                                placeholder="Your AKGEC email"
+                                placeholder="Your email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required

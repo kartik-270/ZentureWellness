@@ -295,22 +295,44 @@ const BookingPage: React.FC = () => {
                         {isLoading ? (
                           <p>Loading slots...</p>
                         ) : availableSlots.length > 0 ? (
-                          availableSlots.map((slot: any, i) => (
-                            <button
-                              key={i}
-                              disabled={!slot.available}
-                              onClick={() => setSelectedTime(slot.time)}
-                              className={`py-2 px-4 rounded-lg border text-sm transition-all
-                                ${!slot.available
-                                  ? "bg-gray-200 text-gray-400 cursor-not-allowed border-gray-200"
-                                  : selectedTime === slot.time
-                                    ? "bg-blue-600 text-white border-blue-600 shadow-md transform scale-105"
-                                    : "bg-white text-gray-700 hover:border-blue-400 hover:bg-blue-50"
-                                }`}
-                            >
-                              {slot.time}
-                            </button>
-                          ))
+                          availableSlots
+                            .filter((slot: any) => {
+                              if (!selectedDate) return true;
+                              const now = new Date();
+                              const isToday = selectedDate.getDate() === now.getDate() &&
+                                selectedDate.getMonth() === now.getMonth() &&
+                                selectedDate.getFullYear() === now.getFullYear();
+
+                              if (isToday) {
+                                // Simple time comparison: HH:MM
+                                const [slotHours, slotMins] = slot.time.split(':').map(Number);
+                                const currentHours = now.getHours();
+                                const currentMins = now.getMinutes();
+
+                                // Hide if slot time is <= current time
+                                // Using 30 mins buffer if needed, but user asked for "upto 3:30 pm slots should not be visible" at 4pm
+                                // So strictly older than now.
+                                if (slotHours < currentHours) return false;
+                                if (slotHours === currentHours && slotMins <= currentMins) return false;
+                              }
+                              return true;
+                            })
+                            .map((slot: any, i) => (
+                              <button
+                                key={i}
+                                disabled={!slot.available}
+                                onClick={() => setSelectedTime(slot.time)}
+                                className={`py-2 px-4 rounded-lg border text-sm transition-all
+                                  ${!slot.available
+                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed border-gray-200"
+                                    : selectedTime === slot.time
+                                      ? "bg-blue-600 text-white border-blue-600 shadow-md transform scale-105"
+                                      : "bg-white text-gray-700 hover:border-blue-400 hover:bg-blue-50"
+                                  }`}
+                              >
+                                {slot.time}
+                              </button>
+                            ))
                         ) : (
                           <p className="col-span-3 text-gray-500">No slots available</p>
                         )}

@@ -7,7 +7,6 @@ import HeroSection from "@/components/hero-section";
 import QuickLinks from "@/components/quick-links";
 import PlatformFeatures from "@/components/platform-features";
 import Footer from "@/components/footer";
-import AiChatBubble from '@/components/AiChatBubble';
 // import BotpressChatbot from '@/components/botpress-chatbot';
 
 declare global {
@@ -76,7 +75,7 @@ export default function Home() {
           aria-hidden="true"
         />
       )}
-      
+
       <div className="relative z-10">
         <HeroSection />
         <QuickLinks onChatTrigger={handleChatTrigger} />
@@ -84,8 +83,7 @@ export default function Home() {
         <Footer />
       </div>
 
-      {/* Replaced Botpress with local AI Chat Bubble */}
-      <AiChatBubble />
+      {/* AiChatBubble is now global in App.tsx */}
       {/* <BotpressChatbot authToken={authToken} /> */}
     </div></>
   );

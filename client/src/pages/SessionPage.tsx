@@ -22,13 +22,14 @@ const SessionPage = () => {
   // Access & User State
   const [loading, setLoading] = useState(true);
   const [accessGranted, setAccessGranted] = useState(false);
-  const [user, setUser] = useState<{ name: string, id: number, role: string } | null>(null);
+  const [user, setUser] = useState<{ id: number; name: string; role: string } | null>(null);
+  const [appointmentId, setAppointmentId] = useState<number | null>(null);
   const [sessionMode, setSessionMode] = useState('video_call');
   const [errorHeader, setErrorHeader] = useState("Access Denied");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Connection State
-  const [status, setStatus] = useState("Initializing...");
+  const [status, setStatus] = useState("Initializing connection...");
   const [peerConnected, setPeerConnected] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null); // Seconds remaining
 
@@ -54,14 +55,56 @@ const SessionPage = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // --- Actions ---
+
+  const handleRedirection = () => {
+    // Backend uses 'counselor' (one L), ensure we match it
+    const role = user?.role || localStorage.getItem('userRole') || 'student';
+    console.log("Redirecting for role:", role);
+
+    if (role === 'counselor') {
+      window.location.href = '/counsellor/dashboard';
+    } else if (role === 'admin') {
+      window.location.href = '/admin/dashboard';
+    } else {
+      window.location.href = '/dashboard';
+    }
+  };
+
+  const hangup = async () => {
+    if (confirm("Are you sure you want to end the session?")) {
+      const role = user?.role || localStorage.getItem('userRole') || 'student';
+
+      // If student, ask for messaging permission
+      if (role === 'student' && appointmentId) {
+        if (confirm("Allow counselor to send follow-up messages?")) {
+          try {
+            const token = localStorage.getItem('authToken');
+            await fetch(`${apiConfig.baseUrl}/appointments/${appointmentId}/messaging-permission`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ allow_messaging: true })
+            });
+          } catch (e) {
+            console.error("Failed to save permission:", e);
+          }
+        }
+      }
+
+      handleRedirection();
+    }
+  };
+
   // Timer Logic
   useEffect(() => {
     if (timeLeft === null) return;
 
     if (timeLeft <= 0) {
       alert("Session time has ended.");
-      const redirectPath = user?.role === 'counsellor' ? '/counsellor/dashboard' : '/dashboard';
-      window.location.href = redirectPath;
+      handleRedirection();
       return;
     }
 
@@ -70,7 +113,7 @@ const SessionPage = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [timeLeft, handleRedirection]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -93,6 +136,7 @@ const SessionPage = () => {
         const data = await res.json();
         if (data.allowed) {
           setUser(data.user);
+          setAppointmentId(data.appointment_id);
           setSessionMode(data.mode);
           setAccessGranted(true);
 
@@ -332,13 +376,6 @@ const SessionPage = () => {
     socketRef.current?.emit('chat-message', { roomId: sessionId, message: inputText });
     setMessages(prev => [...prev, { sender: "You", text: inputText }]);
     setInputText("");
-  };
-
-  const hangup = () => {
-    if (confirm("Are you sure you want to end the session?")) {
-      const redirectPath = user?.role === 'counsellor' ? '/counsellor/dashboard' : '/dashboard';
-      window.location.href = redirectPath;
-    }
   };
 
 

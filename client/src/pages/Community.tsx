@@ -235,6 +235,37 @@ export default function Community() {
     }
   };
 
+  const handleLikePost = async (postId: number) => {
+    const token = getAuthToken();
+    if (!token) {
+      alert("Please log in to like posts.");
+      return;
+    }
+
+    // Optimistic Update
+    const originalPosts = [...posts];
+    setPosts(prev => prev.map(p =>
+      p.id === postId ? { ...p, likes_count: (p.likes_count || 0) + 1 } : p
+    ));
+
+    try {
+      const res = await fetch(`${apiConfig.baseUrl}/posts/${postId}/like`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // sync with server response (e.g. if it was an unlike)
+        setPosts(prev => prev.map(p => p.id === postId ? { ...p, likes_count: data.likes_count } : p));
+      } else {
+        setPosts(originalPosts);
+      }
+    } catch (err) {
+      console.error("Like failed", err);
+      setPosts(originalPosts);
+    }
+  };
+
   const handleDeletePost = async (postId: number) => {
     const token = getAuthToken();
     if (!token) return;
@@ -391,7 +422,7 @@ export default function Community() {
                   </span>
                   <div className="flex gap-4">
                     <button onClick={() => handleExpandPost(post.id)} className="hover:text-sky-600 transition">💬 {post.reply_count || 0} Replies</button>
-                    <span className="cursor-pointer hover:text-red-500 transition">❤ {post.likes_count}</span>
+                    <button onClick={() => handleLikePost(post.id)} className="cursor-pointer hover:text-red-500 transition">❤ {post.likes_count}</button>
                   </div>
                 </div>
 

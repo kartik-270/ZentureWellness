@@ -26,8 +26,11 @@ export default function Settings() {
                     const data = await res.json();
 
                     // Normalize availability
-                    const availability = typeof data.availability === 'object' && data.availability?.days
-                        ? data.availability
+                    const availability = data.availability && typeof data.availability === 'object'
+                        ? {
+                            days: data.availability.days || ["Mon", "Tue", "Wed", "Thu", "Fri"],
+                            timeRange: data.availability.timeRange || "09:00-18:00"
+                        }
                         : { days: ["Mon", "Tue", "Wed", "Thu", "Fri"], timeRange: "09:00-18:00" };
 
                     setProfile({ ...data, availability });
@@ -51,7 +54,8 @@ export default function Settings() {
 
     const handleTimeChange = (type: 'start' | 'end', value: string) => {
         setProfile((prev: any) => {
-            const [start, end] = prev.availability.timeRange.split("-");
+            const range = prev.availability?.timeRange || "09:00-17:00";
+            const [start, end] = range.split("-");
             const newRange = type === 'start' ? `${value}-${end}` : `${start}-${value}`;
             return {
                 ...prev,
