@@ -24,7 +24,7 @@ interface Appointment {
   mode: string;
   status: string;
   meeting_link: string;
-  category?: 'upcoming' | 'completed' | 'canceled' | 'pending';
+  category?: "upcoming" | "completed" | "canceled" | "pending";
   formattedTime?: string;
   formattedDate?: string;
 }
@@ -35,48 +35,53 @@ interface Client {
   rating: number;
 }
 
+const SESSION_DURATION = 45 * 60 * 1000;
+
 const isSessionStarting = (appointmentDate: string) => {
-  const now = new Date().getTime();
+  const now = Date.now();
   const appointmentTime = new Date(appointmentDate).getTime();
-  const tenMinutesInMillis = 10 * 60 * 1000;
-  // Show button 10 mins before and up to 50 mins after start time
-  return appointmentTime - now < tenMinutesInMillis && now - appointmentTime < 45 * 60 * 1000;
+
+  return (
+    appointmentTime - now <= 10 * 60 * 1000 &&
+    now - appointmentTime <= SESSION_DURATION
+  );
 };
 
 const formatAppointments = (appointments: Appointment[]): Appointment[] => {
-  const now = new Date();
-  const sessionDurationInMillis = 45 * 60 * 1000;
+  const now = Date.now();
 
-  return appointments.map(app => {
-    const appTime = new Date(app.date);
-    const isPast = (appTime.getTime() + sessionDurationInMillis) < now.getTime();
+  return appointments.map((app) => {
+    const appTime = new Date(app.date).getTime();
+    const isPast = appTime + SESSION_DURATION < now;
 
-    let category: 'upcoming' | 'completed' | 'canceled' | 'pending' = 'upcoming';
+    let category: Appointment["category"] = "upcoming";
 
-    if (app.status === 'canceled' || app.status === 'rejected') {
-      category = 'canceled';
-    } else if (app.status === 'pending') {
-      category = 'pending';
+    if (app.status === "canceled" || app.status === "rejected") {
+      category = "canceled";
+    } else if (app.status === "pending") {
+      category = "pending";
     } else if (isPast) {
-      // isPast is true if now > (appTime + 45 mins)
-      category = 'completed';
+      category = "completed";
     }
 
     return {
       ...app,
       category,
-      formattedTime: appTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      formattedDate: appTime.toLocaleDateString(),
+      formattedTime: new Date(app.date).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      formattedDate: new Date(app.date).toLocaleDateString(),
     };
   });
 };
 
 export default function CounsellorDashboard() {
-  const [location, setLocation] = useLocation();
-  const [counsellorName, setCounsellorName] = useState<string>("");
+  const [, setLocation] = useLocation();
+  const [counsellorName, setCounsellorName] = useState("");
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // High-Risk States
@@ -121,71 +126,89 @@ export default function CounsellorDashboard() {
         return;
       }
 
-      try {
-        const response = await fetch(`${apiConfig.baseUrl}/counsellor/dashboard-data`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+    if (!token) {
+      setError("Session expired. Please login again.");
+      setLocation("/login");
+      return;
+    }
 
-        if (!response.ok) {
-          if (response.status === 401) {
-            // Optional: Don't throw on 401 during polling to avoid interrupting user? 
-            // Better to redirect or show error clearly.
-            throw new Error("Your session has expired. Please log in again.");
-          }
-          // Silent fail on polling error or handle? For now, we set error.
-          throw new Error("Failed to fetch dashboard data");
-        }
-
-        const data = await response.json();
-        localStorage.setItem('username', data.counsellorName);
-        setCounsellorName(data.counsellorName);
-        // Only update if data changed? React sets state diffing usually handles this reasonably well for this size.
-        setAppointments(formatAppointments(data.appointments));
-        setClients(data.clients);
-
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          // Only set error if it's the first load or a critical auth error
-          // Otherwise, transient network errors shouldn't crash the UI during polling
-          console.error(err);
-          if (loading) setError(err.message);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, [location]); // Keep dependency if needed, usually just empty array or location key.
-
-  const handleStartSession = (meetingLink: string) => {
-    if (!meetingLink) return;
-    window.location.href = meetingLink;
-  };
-
-  const handleAction = async (apptId: number, newStatus: 'booked' | 'rejected') => {
     try {
-      const token = localStorage.getItem('authToken');
-      const res = await fetch(`${apiConfig.baseUrl}/appointments/${apptId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-      if (!res.ok) throw new Error("Failed to update status");
+      const response = await fetch(
+        `${apiConfig.baseUrl}/counsellor/dashboard-data`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      // Refresh local state to reflect change immediately
-      setAppointments(prev => formatAppointments(prev.map(app =>
-        app.id === apptId ? { ...app, status: newStatus } : app
-      )));
+      if (response.status === 401) {
+        localStorage.removeItem("authToken");
+        setLocation("/login");
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch dashboard data");
+      }
+
+      const data = await response.json();
+
+      setCounsellorName(data.counsellorName);
+      setAppointments(formatAppointments(data.appointments || []));
+      setClients(data.clients || []);
+      setError(null);
     } catch (err) {
       console.error(err);
-      setError("Failed to update appointment");
+      setError("Unable to load dashboard.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchDashboardData();
+
+    const interval = setInterval(fetchDashboardData, 30000); // auto refresh every 30 sec
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleStartSession = (meetingLink: string) => {
+    if (meetingLink) window.open(meetingLink, "_blank");
+  };
+
+  const handleAction = async (
+    apptId: number,
+    newStatus: "booked" | "rejected"
+  ) => {
+    try {
+      const token = localStorage.getItem("authToken");
+
+      const res = await fetch(
+        `${apiConfig.baseUrl}/appointments/${apptId}/status`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
+
+      if (!res.ok) throw new Error();
+
+      setAppointments((prev) =>
+        formatAppointments(
+          prev.map((app) =>
+            app.id === apptId ? { ...app, status: newStatus } : app
+          )
+        )
+      );
+    } catch {
+      setError("Failed to update appointment.");
+    }
+  };
+  if (loading)
+    return <div className="text-center mt-20">Loading dashboard...</div>;
   const fetchStudentConfidential = async (studentId: number) => {
     const token = localStorage.getItem('authToken');
     try {
@@ -216,8 +239,8 @@ export default function CounsellorDashboard() {
   const completedAppointments = appointments.filter(app => app.category === 'completed');
   const canceledAppointments = appointments.filter(app => app.category === 'canceled');
 
-  if (loading) return <div className="text-center mt-20">Loading dashboard...</div>;
-  if (error) return <div className="text-center mt-20 text-red-500">Error: {error}</div>;
+  if (error)
+    return <div className="text-center mt-20 text-red-500">{error}</div>;
 
   return (
     <div className="min-h-screen text-gray-900">
@@ -226,7 +249,7 @@ export default function CounsellorDashboard() {
         <div className="flex-1 p-6 lg:p-10">
           <CounsellorHeader name={counsellorName} />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8 background-bg">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
             <div className="lg:col-span-2 space-y-6">
 
               {/* High-Risk Alerts Section (Real-Time) */}
@@ -268,17 +291,28 @@ export default function CounsellorDashboard() {
               {pendingAppointments.length > 0 && (
                 <div className="bg-orange-50 p-6 rounded-2xl shadow border border-orange-200">
                   <h3 className="text-xl font-semibold text-orange-800 mb-4">
-                    Pending Requests ({pendingAppointments.length})
+                    Pending Requests ({pending.length})
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {pendingAppointments.map((app) => (
-                      <div key={app.id} className="bg-white p-4 rounded-lg shadow-sm">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {pending.map((app) => (
+                      <div key={app.id} className="bg-white p-4 rounded-lg shadow">
                         <p className="font-bold">{app.studentName}</p>
-                        <p className="text-sm text-gray-600">{app.formattedDate} at {app.formattedTime}</p>
-                        <p className="text-xs text-gray-500 mb-3 uppercase font-semibold">{app.mode}</p>
-                        <div className="flex gap-2">
-                          <button onClick={() => handleAction(app.id, 'booked')} className="flex-1 bg-green-500 text-white py-1 rounded hover:bg-green-600 text-sm">Accept</button>
-                          <button onClick={() => handleAction(app.id, 'rejected')} className="flex-1 bg-red-500 text-white py-1 rounded hover:bg-red-600 text-sm">Reject</button>
+                        <p className="text-sm text-gray-600">
+                          {app.formattedDate} at {app.formattedTime}
+                        </p>
+                        <div className="flex gap-2 mt-3">
+                          <button
+                            onClick={() => handleAction(app.id, "booked")}
+                            className="flex-1 bg-green-500 text-white py-1 rounded"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => handleAction(app.id, "rejected")}
+                            className="flex-1 bg-red-500 text-white py-1 rounded"
+                          >
+                            Reject
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -286,94 +320,17 @@ export default function CounsellorDashboard() {
                 </div>
               )}
 
-              <div className="bg-white/80 p-6 rounded-2xl shadow">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                  Upcoming Sessions ({upcomingAppointments.length})
+              {/* Upcoming */}
+              <div className="bg-white p-6 rounded-2xl shadow">
+                <h3 className="text-xl font-semibold mb-4">
+                  Upcoming Sessions ({upcoming.length})
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {upcomingAppointments.length > 0 ? (
-                    upcomingAppointments.map((app) => (
-                      <SessionCard
-                        title={app.studentName}
-                        subtitle={app.mode}
-                        meta={app.formattedTime}
-                        action={
-                          <>
-                            {isSessionStarting(app.date) && app.mode !== 'in_person' && (
-                              <button
-                                onClick={() => handleStartSession(app.meeting_link)}
-                                className="w-full px-3 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-all shadow-sm font-medium"
-                              >
-                                Start Session
-                              </button>
-                            )}
-                            {app.mode === 'in_person' && (
-                              <div className="w-full px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-md text-center font-medium">
-                                In Person Meeting
-                              </div>
-                            )}
-                          </>
-                        }
-                      />
-                    ))
-                  ) : (
-                    <p className="text-gray-500">No confirmed upcoming sessions.</p>
-                  )}
-                </div>
-              </div>
-
-              <aside className="space-y-6">
-                <div className="bg-white/80 p-4 rounded-xl shadow">
-                  <h4 className="text-sm text-gray-500 uppercase">Today's Overview</h4>
-                  <p className="text-2xl font-semibold text-gray-800 mt-2">{upcomingAppointments.length} confirmed</p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {pendingAppointments.length} pending • {canceledAppointments.length} cancelled
-                  </p>
-                </div>
-              </aside>
-            </div>
-
-            <div className="bg-gradient-to-r from-blue-600 to-cyan-500 text-black shadow-md p-6 rounded-2xl shadow lg:col-start-3 lg:row-start-1">
-              {/* Right Column Content - moved here to match grid layout */}
-              <h3 className="text-lg font-semibold mb-4">Client List ({clients.length})</h3>
-              <div className="space-y-3">
-                {clients.length > 0 ? (
-                  clients.map((client, i) => (
-                    <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold">
-                          {client.name.split(" ").map(n => n[0]).slice(0, 2).join("")}
-                        </div>
-                        <div>
-                          <div className="font-medium">{client.name}</div>
-                          <div className="text-sm text-gray-500">{client.status}</div>
-                        </div>
-                      </div>
-                      <div className="text-sm text-gray-600">{client.rating} ★</div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No clients found.</p>
+                {upcoming.length === 0 && (
+                  <p className="text-gray-500">No confirmed sessions.</p>
                 )}
               </div>
 
-              <h3 className="text-lg font-semibold mb-4 mt-8">History ({completedAppointments.length})</h3>
-              <div className="space-y-3">
-                {completedAppointments.length > 0 ? (
-                  completedAppointments.map((app) => (
-                    <SessionCard
-                      key={app.id}
-                      title={`${app.studentName} - Completed`}
-                      subtitle={`Mode: ${app.mode}`}
-                      meta={app.formattedDate}
-                    />
-                  ))
-                ) : (
-                  <p className="text-gray-500">No completed sessions.</p>
-                )}
-              </div>
             </div>
-
           </div>
         </div>
       </div>

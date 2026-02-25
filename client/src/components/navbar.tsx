@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
-import logo from "../../../public/logo1.jpeg";
+import logo from "../../../public/logo1.png";
 import { apiConfig } from "@/lib/config";
 
 export default function Navbar() {
@@ -14,6 +14,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
+
     const storedUsername = localStorage.getItem("username");
 
     if (token && storedUsername) {
@@ -68,8 +69,8 @@ export default function Navbar() {
         <div className="flex h-16 md:h-20 items-center justify-between">
 
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="Zenture" className="w-10 h-10 object-contain" />
+          <div className="flex items-center gap-1">
+            <img src={logo} alt="Zenture" className="w-12 h-12 object-contain" />
             <span className="text-xl md:text-2xl font-bold tracking-tight">
               Zenture
             </span>

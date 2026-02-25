@@ -87,25 +87,25 @@ export default function DailyCheckIn() {
 
     if (isLoading) {
         return (
-            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full my-12">
-                <div className="bg-white/80 backdrop-blur-md border border-blue-100 shadow-xl rounded-[2rem] p-8 md:p-10 min-h-[280px] flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin" />
+            <section className="max-w-7xl  mx-auto px-4 bg-gradient-to-r from-blue-400 to-cyan-200 sm:px-6 lg:px-8 w-full my-12">
+                <div className="  border  border-blue-100 shadow-xl bg-gradient-to-r from-blue-400 to-cyan-200 rounded-2xl p-8 md:p-10 min-h-[280px] flex items-center justify-center">
+                    <div className="flex flex-col bg-gradient-to-r  items-center gap-4">
+                        <div className="w-12 h-12 border-4 rounded-full animate-spin" />
                         <p className="text-slate-400 font-medium animate-pulse">Preparing your wellness space...</p>
                     </div>
                 </div>
-            </section>
+            </section> 
         );
     }
 
     return (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full my-12">
-            <div className="relative group overflow-hidden">
+        <section className="max-w-7xl bg-gradient-to-r from-blue-400 to-cyan-200 mx-auto px-4 sm:px-6 lg:px-8 w-full my-12">
+            <div className="relative group overflow-hidden isolate">
                 {/* Decorative background elements */}
                 <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-blue-100 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity" />
                 <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-indigo-50 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity" />
 
-                <div className="relative bg-white/80 backdrop-blur-md border border-blue-100 shadow-xl rounded-[2rem] p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className="relative bg-white/80 backdrop-blur-md border border-blue-100 shadow-xl p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="flex-1 space-y-4 text-center md:text-left">
                         <div className="inline-flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-100 text-blue-600 font-bold text-xs uppercase tracking-wider">
                             <Sparkles size={14} className="animate-pulse" />
@@ -139,7 +139,7 @@ export default function DailyCheckIn() {
                                     }
                                     setIsModalOpen(true);
                                 }}
-                                className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl px-10 py-8 text-lg font-bold shadow-lg shadow-blue-200 transition-all hover:scale-105"
+                                className="bg-gradient-to-r from-blue-500 to-cyan-300 text-white rounded-2xl px-10 py-8 text-lg font-bold shadow-lg shadow-blue-200 transition-all hover:scale-105"
                             >
                                 Start Check-in
                             </Button>

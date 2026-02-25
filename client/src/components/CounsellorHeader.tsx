@@ -1,6 +1,6 @@
 export default function CounsellorHeader({ name }: { name: string }) {
   return (
-    <header className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md rounded-2xl p-6 flex items-center justify-between shadow">
+    <header className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md rounded-2xl p-6 flex items-center justify-between">
       <div>
         <h1 className="text-2xl font-bold text-white">Welcome, {name}</h1>
         <p className="text-sm text-white/80 mt-1">Here’s your overview for today.</p>
