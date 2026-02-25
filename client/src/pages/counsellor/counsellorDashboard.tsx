@@ -117,15 +117,8 @@ export default function CounsellorDashboard() {
     };
   }, []);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        setError("No authentication token found. Please log in again.");
-        setLoading(false);
-        return;
-      }
-
+  const fetchDashboardData = async () => {
+    const token = localStorage.getItem('authToken');
     if (!token) {
       setError("Session expired. Please login again.");
       setLocation("/login");
@@ -291,10 +284,10 @@ export default function CounsellorDashboard() {
               {pendingAppointments.length > 0 && (
                 <div className="bg-orange-50 p-6 rounded-2xl shadow border border-orange-200">
                   <h3 className="text-xl font-semibold text-orange-800 mb-4">
-                    Pending Requests ({pending.length})
+                    Pending Requests ({pendingAppointments.length})
                   </h3>
                   <div className="grid md:grid-cols-2 gap-4">
-                    {pending.map((app) => (
+                    {pendingAppointments.map((app) => (
                       <div key={app.id} className="bg-white p-4 rounded-lg shadow">
                         <p className="font-bold">{app.studentName}</p>
                         <p className="text-sm text-gray-600">
@@ -323,11 +316,32 @@ export default function CounsellorDashboard() {
               {/* Upcoming */}
               <div className="bg-white p-6 rounded-2xl shadow">
                 <h3 className="text-xl font-semibold mb-4">
-                  Upcoming Sessions ({upcoming.length})
+                  Upcoming Sessions ({upcomingAppointments.length})
                 </h3>
-                {upcoming.length === 0 && (
-                  <p className="text-gray-500">No confirmed sessions.</p>
-                )}
+                <div className="space-y-4">
+                  {upcomingAppointments.length > 0 ? (
+                    upcomingAppointments.map((app) => (
+                      <SessionCard
+                        key={app.id}
+                        title={app.studentName}
+                        subtitle={app.mode}
+                        meta={app.formattedTime}
+                        action={
+                          isSessionStarting(app.date) && app.mode !== "in_person" && (
+                            <button
+                              onClick={() => handleStartSession(app.meeting_link)}
+                              className="w-full px-3 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-all font-medium"
+                            >
+                              Start Session
+                            </button>
+                          )
+                        }
+                      />
+                    ))
+                  ) : (
+                    <p className="text-gray-500">No confirmed sessions.</p>
+                  )}
+                </div>
               </div>
 
             </div>
