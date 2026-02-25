@@ -107,7 +107,7 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
             <DialogContent className="sm:max-w-[450px] overflow-hidden p-0 border-none shadow-2xl">
                 <div className="bg-gradient-to-br from-blue-50 to-white p-6">
                     <DialogHeader className="mb-6">
-                        <DialogTitle className="text-2xl font-bold text-blue-900">
+                        <DialogTitle className="text-2xl font-bold text-blue-500">
                             {step < 6 ? "Mood Check-in" : "Your Analysis"}
                         </DialogTitle>
                         <DialogDescription className="text-blue-700/70">

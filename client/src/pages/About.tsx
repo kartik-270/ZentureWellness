@@ -14,12 +14,12 @@ export default function About() {
           <h1 className="text-4xl font-bold text-slate-800 mb-4">
             About Zenture
           </h1>
-          <p className="text-lg text-gray-600">
+          {/* <p className="text-lg text-gray-600">
             Our solution for{" "}
-            <span className="font-semibold">
+            {/* <span className="font-semibold">
               Smart India Hackathon 2025
-            </span>
-          </p>
+            </span> 
+          </p> */}
         </section>
 
         {/* Problem Statement */}
@@ -28,9 +28,9 @@ export default function About() {
             Problem Statement
           </h2>
           <div className="bg-white shadow-md rounded-xl p-6 space-y-2">
-            <p>
+            {/* <p>
               <span className="font-bold">ID:</span> 25092
-            </p>
+            </p> */}
             <p>
               <span className="font-bold">Title:</span> Development of a Digital
               Mental Health and Psychological Support System for Students in
