@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
       "/api": {
         // Local Flask backend in dev
         // target: "https://zenture-backend.onrender.com/api/",
-        target: "http://13.50.252.32/api/",
+        target: "https://zenture.duckdns.org/api/",
         changeOrigin: true,
         secure: false,
       },
