@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from 'uuid';
 import { apiConfig } from "@/lib/config";
+import { Volume2, VolumeX, Calendar, RotateCcw, Send, Loader2 } from 'lucide-react';
+import { useLocation } from "wouter";
 
 // Define the types for a message
 interface Message {
@@ -16,10 +18,43 @@ const Chatbot: React.FC = () => {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [, setLocation] = useLocation();
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
 
   // Function to get the JWT token from storage
   const getToken = () => {
     return localStorage.getItem('authToken');
+  };
+
+  const speak = (text: string) => {
+    if (!voiceEnabled) return;
+    window.speechSynthesis.cancel();
+    const strippedText = text.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '');
+    const utterance = new SpeechSynthesisUtterance(strippedText);
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice = voices.find(v =>
+      v.name.includes('Google UK English Female') ||
+      v.name.includes('Microsoft Zira') ||
+      (v.name.includes('Female') && v.lang.startsWith('en'))
+    ) || voices[0];
+    if (preferredVoice) utterance.voice = preferredVoice;
+    utterance.rate = 1.0;
+    utterance.pitch = 1.1;
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    window.speechSynthesis.speak(utterance);
   };
 
   const handleSendMessage = async (messageToSend: string) => {
@@ -28,44 +63,89 @@ const Chatbot: React.FC = () => {
       setInputValue('');
       setIsTyping(true);
 
+      // Placeholder for streaming response
+      setMessages(prev => [...prev, { text: '', isUser: false }]);
+
       try {
         const token = getToken();
-        const headers = {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` }),
-        };
-
         const response = await fetch(`${apiConfig.baseUrl}/chatbot`, {
           method: 'POST',
-          headers: headers,
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` }),
+          },
           body: JSON.stringify({
             message: messageToSend,
             conversation_id: conversationId,
           }),
         });
 
-        const data = await response.json();
+        if (!response.body) throw new Error('No response body');
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let botText = '';
+        let partialLine = '';
 
-        if (data.conversation_id && !conversationId) {
-          setConversationId(data.conversation_id);
+        setIsTyping(false);
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = (partialLine + chunk).split('\n');
+          partialLine = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.trim().startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.trim().slice(6));
+                if (data.chunk) {
+                  botText += data.chunk;
+                  setMessages(prev => {
+                    const next = [...prev];
+                    const last = next[next.length - 1];
+                    if (last && !last.isUser) last.text = botText;
+                    return next;
+                  });
+                } else if (data.final) {
+                  if (data.conversation_id && !conversationId) {
+                    setConversationId(data.conversation_id);
+                  }
+                  setMessages(prev => {
+                    const next = [...prev];
+                    const last = next[next.length - 1];
+                    if (last && !last.isUser) {
+                      last.text = data.full_response;
+                      last.followUps = data.followUps;
+                    }
+                    return next;
+                  });
+
+                  if (voiceEnabled) {
+                    speak(data.full_response);
+                  }
+                }
+              } catch (e) {
+                console.error("Error parsing stream chunk:", e);
+              }
+            }
+          }
         }
 
-        setMessages(prevMessages => [...prevMessages, {
-          text: data.response,
-          isUser: false,
-          followUps: data.followUps,
-        }]);
-
-        // Show feedback after 5 messages
         if (messages.length > 5 && !feedbackSubmitted) {
           setShowFeedback(true);
         }
       } catch (error) {
         console.error("Error fetching chatbot response:", error);
-        setMessages(prevMessages => [...prevMessages, {
-          text: "Sorry, I'm having trouble connecting right now. Please try again later.",
-          isUser: false,
-        }]);
+        setMessages(prev => {
+          const next = [...prev];
+          if (next.length > 0 && next[next.length - 1].text === '') next.pop();
+          return [...next, {
+            text: "Sorry, I'm having trouble connecting right now. Please try again later.",
+            isUser: false,
+          }];
+        });
       } finally {
         setIsTyping(false);
       }
@@ -132,11 +212,18 @@ const Chatbot: React.FC = () => {
         </div>
         <div className="flex items-center space-x-2">
           <button
+            onClick={() => setVoiceEnabled(!voiceEnabled)}
+            className={`p-2 rounded-full transition-colors ${voiceEnabled ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:bg-gray-100'}`}
+            title={voiceEnabled ? "Voice Response On" : "Voice Response Off"}
+          >
+            {voiceEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+          </button>
+          <button
             onClick={handleEndSession}
             title="Start new chat"
-            className="text-gray-500 text-lg hover:text-gray-800 transition-colors"
+            className="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
           >
-            ↻
+            <RotateCcw size={20} />
           </button>
         </div>
       </div>
@@ -181,10 +268,12 @@ const Chatbot: React.FC = () => {
         )}
 
         {isTyping && (
-          <div className="self-start bg-gray-200 text-gray-800 rounded-xl p-3 max-w-[80%] rounded-bl-none">
-            ...
+          <div className="self-start flex items-center gap-2 text-gray-400 bg-gray-100 p-3 rounded-xl rounded-bl-none">
+            <Loader2 className="animate-spin" size={16} />
+            <span className="text-xs italic">Thinking...</span>
           </div>
         )}
+        <div ref={messagesEndRef} />
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="w-20 h-20 flex items-center justify-center rounded-full bg-blue-500 text-white font-bold text-4xl mb-3">
@@ -210,11 +299,18 @@ const Chatbot: React.FC = () => {
           disabled={isTyping}
         />
         <button
-          onClick={() => handleSendMessage(inputValue)}
-          className={`flex-shrink-0 w-10 h-10 flex items-center justify-center ml-2 text-white rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${isTyping ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
-          disabled={isTyping}
+          onClick={() => setLocation('/appointment')}
+          className="flex-shrink-0 w-10 h-10 flex items-center justify-center ml-2 text-gray-400 hover:text-blue-600 transition-colors focus:outline-none"
+          title="Book Counseling Session"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          <Calendar size={24} />
+        </button>
+        <button
+          onClick={() => handleSendMessage(inputValue)}
+          className={`flex-shrink-0 w-10 h-10 flex items-center justify-center ml-2 text-white rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${isTyping || !inputValue.trim() ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
+          disabled={isTyping || !inputValue.trim()}
+        >
+          <Send size={20} />
         </button>
       </div>
 

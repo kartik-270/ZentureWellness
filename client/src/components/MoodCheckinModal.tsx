@@ -54,6 +54,7 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
             setSocial(false);
             setEnergy("Medium");
             setAnalysis("");
+            setIsSaving(false);
         }
     }, [isOpen]);
 
@@ -119,7 +120,7 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
                     {/* Step 1: Mood */}
                     {step === 1 && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <h3 className="font-semibold text-lg text-slate-800">How's your mood right now?</h3>
+                            <h3 className="font-semibold text-md text-slate-800">How's your mood right now?</h3>
                             <div className="grid grid-cols-3 gap-3">
                                 {moods.map((m) => (
                                     <button

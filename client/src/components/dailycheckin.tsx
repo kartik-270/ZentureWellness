@@ -20,14 +20,17 @@ export default function DailyCheckIn() {
     const [allCheckins, setAllCheckins] = useState<MoodCheckinData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     const checkStatus = async () => {
         try {
             const token = localStorage.getItem("authToken");
             if (!token) {
+                setIsLoggedIn(false);
                 setIsLoading(false);
                 return;
             }
+            setIsLoggedIn(true);
 
             const response = await fetch(`${apiConfig.baseUrl}/mood-checkin/today-status`, {
                 headers: { "Authorization": `Bearer ${token}` }
@@ -82,7 +85,18 @@ export default function DailyCheckIn() {
         }
     };
 
-    if (isLoading) return null;
+    if (isLoading) {
+        return (
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full my-12">
+                <div className="bg-white/80 backdrop-blur-md border border-blue-100 shadow-xl rounded-[2rem] p-8 md:p-10 min-h-[280px] flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin" />
+                        <p className="text-slate-400 font-medium animate-pulse">Preparing your wellness space...</p>
+                    </div>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full my-12">
@@ -97,7 +111,7 @@ export default function DailyCheckIn() {
                             <Sparkles size={14} className="animate-pulse" />
                             {hasCheckedInToday ? "Daily Journey" : "Self-Care Daily"}
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                        <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
                             {hasCheckedInToday ? "Is there any mood change?" : "How's your mood today?"}
                         </h2>
                         <p className="text-lg text-slate-600 max-w-lg">
@@ -118,7 +132,13 @@ export default function DailyCheckIn() {
                     <div className="flex flex-col gap-3 w-full md:w-auto">
                         {!hasCheckedInToday ? (
                             <Button
-                                onClick={() => setIsModalOpen(true)}
+                                onClick={() => {
+                                    if (!isLoggedIn) {
+                                        alert("Please login to start your daily check-in");
+                                        return;
+                                    }
+                                    setIsModalOpen(true);
+                                }}
                                 className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl px-10 py-8 text-lg font-bold shadow-lg shadow-blue-200 transition-all hover:scale-105"
                             >
                                 Start Check-in

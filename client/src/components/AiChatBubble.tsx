@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, RotateCcw, Send, Loader2, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
+import { MessageCircle, X, RotateCcw, Send, Loader2, Mic, MicOff, Volume2, VolumeX, Calendar } from 'lucide-react';
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiConfig } from "@/lib/config";
@@ -239,10 +239,10 @@ const AiChatBubble: React.FC = () => {
     const speak = (text: string) => {
         if (!voiceEnabled) return;
 
-        // Cancel any ongoing speech
-        window.speechSynthesis.cancel();
+        // Strip emojis from text before speaking
+        const strippedText = text.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '');
 
-        const utterance = new SpeechSynthesisUtterance(text);
+        const utterance = new SpeechSynthesisUtterance(strippedText);
 
         // Find a smooth female voice
         const voices = window.speechSynthesis.getVoices();
@@ -377,6 +377,13 @@ const AiChatBubble: React.FC = () => {
                                     title="Voice Typing"
                                 >
                                     {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+                                </button>
+                                <button
+                                    onClick={() => setLocation('/appointment')}
+                                    className="text-gray-400 hover:text-blue-600 transition-colors"
+                                    title="Book Counseling Session"
+                                >
+                                    <Calendar size={20} />
                                 </button>
                                 <button
                                     onClick={() => handleSendMessage(inputValue)}
