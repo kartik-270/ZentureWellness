@@ -10,6 +10,7 @@ interface Message {
     followUps?: string[];
 }
 
+
 const AiChatBubble: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);

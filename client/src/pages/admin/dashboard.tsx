@@ -2,9 +2,17 @@ import React, { useState, useEffect } from "react";
 import {
   AlertTriangle,
   Home,
+  User,
+  Shield,
+  Phone,
+  Mail,
+  Users as UsersIcon,
+  X
 } from "lucide-react";
+import { io } from "socket.io-client";
 import { apiConfig } from "@/lib/config";
 import AdminLayout from "../../components/AdminLayout";
+import { useToast } from "@/hooks/use-toast";
 
 // Define the data structures for the charts using interfaces
 interface ChartDataPoint {
@@ -209,10 +217,111 @@ export default function AdminDashboard() {
   const [engagementData, setEngagementData] = useState<{ newUsers: ChartDataPoint[], activeSessions: ChartDataPoint[] } | null>(null);
   const [moodData, setMoodData] = useState<AnxietyDataPoint[]>([]);
   const [resourceData, setResourceData] = useState<any[]>([]);
+  const [forumActivity, setForumActivity] = useState<any>(null);
   const [overviewData, setOverviewData] = useState<any>(null);
   const [counselorStatus, setCounselorStatus] = useState<any>(null);
-  const [forumActivity, setForumActivity] = useState<any>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(true);
+
+  // Real-time Alerts State
+  const [highRiskAlerts, setHighRiskAlerts] = useState<any[]>([]);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedAlert, setSelectedAlert] = useState<any>(null);
+  const [studentConfidential, setStudentConfidential] = useState<any>(null);
+  const [counselors, setCounselors] = useState<any[]>([]);
+  const [assigningCounselor, setAssigningCounselor] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Socket.IO Setup
+    const socket = io(apiConfig.baseUrl.replace('/api', '')); // Connect to root for Socket.IO
+
+    socket.on('connect', () => {
+      console.log("Connected to Socket.IO");
+      socket.emit('join-room', { roomId: 'admin', userId: 'admin-user' });
+    });
+
+    socket.on('high-risk-alert', (alert: any) => {
+      console.log("New High-Risk Alert:", alert);
+      setHighRiskAlerts((prev: any[]) => [alert, ...prev]);
+      setOverviewData((prev: any) => ({
+        ...prev,
+        unacknowledgedAlerts: (prev?.unacknowledgedAlerts || 0) + 1
+      }));
+      toast({
+        title: "URGENT ALERT",
+        description: "New high-risk student activity detected.",
+        variant: "destructive"
+      });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  const fetchHighRiskAlerts = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${apiConfig.baseUrl}/admin/alerts/high-risk`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) setHighRiskAlerts(await res.json());
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleReviewAlert = async (alert: any) => {
+    setSelectedAlert(alert);
+    setShowReviewModal(true);
+
+    // Fetch student confidential info
+    try {
+      const token = localStorage.getItem('authToken');
+      const [confRes, counsRes] = await Promise.all([
+        fetch(`${apiConfig.baseUrl}/admin/student/${alert.user_id}/confidential`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${apiConfig.baseUrl}/counselors`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ]);
+
+      if (confRes.ok) setStudentConfidential(await confRes.json());
+      if (counsRes.ok) setCounselors(await counsRes.json());
+    } catch (e) {
+      console.error("Error fetching review data:", e);
+    }
+  };
+
+  const handleAssignCounselor = async (counselorId: number) => {
+    setAssigningCounselor(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${apiConfig.baseUrl}/admin/assign-counselor`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          student_id: selectedAlert.user_id,
+          counselor_id: counselorId
+        })
+      });
+
+      if (res.ok) {
+        toast({ title: "Success", description: "Counselor assigned and notifications sent." });
+        setShowReviewModal(false);
+      } else {
+        throw new Error("Failed to assign");
+      }
+    } catch (e) {
+      toast({ title: "Error", description: "Failed to assign counselor.", variant: "destructive" });
+    } finally {
+      setAssigningCounselor(false);
+    }
+  };
 
   const languageData: PieChartDataPoint[] = [
     { label: "English", value: 70, color: "#2563eb" },
@@ -319,7 +428,13 @@ export default function AdminDashboard() {
               {loadingAnalytics ? "..." : (overviewData?.unacknowledgedAlerts || 0)}
             </p>
             <p className="opacity-90 mt-1">Unacknowledged High-Risk Alerts</p>
-            <button className="mt-6 bg-white text-red-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors shadow-md">
+            <button
+              onClick={() => {
+                fetchHighRiskAlerts();
+                setShowReviewModal(true);
+              }}
+              className="mt-6 bg-white text-red-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors shadow-md"
+            >
               Review Now
             </button>
           </div>
@@ -333,7 +448,7 @@ export default function AdminDashboard() {
               <p className="text-red-500">{appointmentError}</p>
             ) : upcomingAppointments.length > 0 ? (
               <ul className="space-y-3">
-                {upcomingAppointments.map((appointment, index) => (
+                {upcomingAppointments.map((appointment: any, index: number) => (
                   <li key={index} className="flex items-center justify-between border-b pb-2 last:border-b-0">
                     <span className="font-medium text-gray-700">{appointment.student_username}</span>
                     <span className="text-sm text-gray-500">
@@ -465,6 +580,148 @@ export default function AdminDashboard() {
           </div>
         </div>
       </section>
+
+      {/* High-Risk Review Modal */}
+      {showReviewModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b flex justify-between items-center bg-red-600 text-white">
+              <div className="flex items-center gap-3">
+                <AlertTriangle size={24} />
+                <h3 className="text-xl font-bold">High-Risk Case Review</h3>
+              </div>
+              <button
+                onClick={() => setShowReviewModal(false)}
+                className="hover:bg-white/20 p-2 rounded-full transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left: Alerts List */}
+                <div className="space-y-6">
+                  <h4 className="font-bold text-gray-700 flex items-center gap-2">
+                    <Shield className="text-red-500" size={18} /> Recent Crisis Alerts
+                  </h4>
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    {highRiskAlerts.length > 0 ? highRiskAlerts.map((alert: any, i: number) => (
+                      <div
+                        key={i}
+                        onClick={() => handleReviewAlert(alert)}
+                        className={`p-4 rounded-xl border transition-all cursor-pointer ${selectedAlert?.id === alert.id ? 'border-red-500 bg-red-50' : 'border-gray-100 bg-gray-50 hover:border-red-200'}`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-bold text-gray-800">{alert.username}</span>
+                          <span className="text-[10px] text-gray-500">{new Date(alert.timestamp).toLocaleString()}</span>
+                        </div>
+                        <p className="text-sm text-gray-600 italic">"{alert.message}"</p>
+                        <div className="mt-2 flex gap-2">
+                          {alert.risk_factors?.map((f: string, fi: number) => (
+                            <span key={fi} className="text-[10px] bg-red-200 text-red-700 px-2 py-0.5 rounded-full font-bold uppercase">{f}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )) : (
+                      <p className="text-gray-500 text-center py-8">No unacknowledged alerts found.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right: Personal Info & Assignment */}
+                <div className="space-y-6">
+                  {selectedAlert ? (
+                    <>
+                      <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                        <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                          <User className="text-blue-500" size={18} /> Personal Information
+                        </h4>
+                        {!studentConfidential ? (
+                          <p className="text-sm text-gray-500">Loading student details...</p>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                              <Shield size={16} className="text-gray-400" />
+                              <div>
+                                <p className="text-[10px] text-gray-500 uppercase font-bold">Full Name</p>
+                                <p className="text-sm font-semibold">{studentConfidential.name}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Phone size={16} className="text-gray-400" />
+                              <div>
+                                <p className="text-[10px] text-gray-500 uppercase font-bold">Student Phone</p>
+                                <p className="text-sm font-semibold text-blue-600 underline">{studentConfidential.phone}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Mail size={16} className="text-gray-400" />
+                              <div>
+                                <p className="text-[10px] text-gray-500 uppercase font-bold">Email Address</p>
+                                <p className="text-sm font-semibold">{studentConfidential.email}</p>
+                              </div>
+                            </div>
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <p className="text-[10px] text-red-500 uppercase font-bold mb-2">Emergency Contact</p>
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm"><strong>{studentConfidential.parent_name}</strong> (Parent)</p>
+                                <p className="text-sm font-bold text-red-600">{studentConfidential.parent_phone}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-4">
+                        <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                          <UsersIcon className="text-purple-500" size={18} /> Assign Expert Counselor
+                        </h4>
+                        <div className="max-h-[200px] overflow-y-auto space-y-2 pr-2">
+                          {counselors.map((c: any) => (
+                            <div key={c.id} className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl hover:border-purple-200 group">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-xs">
+                                  {c.name[0]}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold">{c.name}</p>
+                                  <p className="text-[10px] text-gray-500">{c.specialty}</p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleAssignCounselor(c.user_id)}
+                                disabled={assigningCounselor}
+                                className="px-3 py-1 bg-purple-600 text-white text-[10px] font-bold rounded-lg hover:bg-purple-700 transition-colors disabled:bg-purple-300"
+                              >
+                                {assigningCounselor ? "Assigning..." : "Assign Now"}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                      <AlertTriangle size={48} className="mb-4 opacity-20" />
+                      <p>Select an alert on the left to review details</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-gray-50 border-t flex justify-end gap-3">
+              <button
+                onClick={() => setShowReviewModal(false)}
+                className="px-6 py-2 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-white transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }
