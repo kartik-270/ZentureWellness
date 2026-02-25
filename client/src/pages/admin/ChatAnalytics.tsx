@@ -182,7 +182,7 @@ export default function ChatAnalytics() {
                         <div>
                             <p className="text-sm text-gray-500 font-medium">Primary Emotion</p>
                             <h3 className="text-2xl font-bold text-purple-600 text-sm">
-                                {emotionData.length > 0 ? emotionData.sort((a, b) => b.value - a.value)[0]?.name : "None"}
+                                {emotionData.length > 0 ? (emotionData as any[]).sort((a: any, b: any) => b.value - a.value)[0]?.name : "None"}
                             </h3>
                         </div>
                         <div className="p-3 bg-purple-50 rounded-lg"><Activity className="text-purple-500" /></div>
