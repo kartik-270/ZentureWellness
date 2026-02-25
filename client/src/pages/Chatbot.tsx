@@ -299,7 +299,7 @@ const Chatbot: React.FC = () => {
           disabled={isTyping}
         />
         <button
-          onClick={() => setLocation('/appointment')}
+          onClick={() => setLocation('/book-appointment')}
           className="flex-shrink-0 w-10 h-10 flex items-center justify-center ml-2 text-gray-400 hover:text-blue-600 transition-colors focus:outline-none"
           title="Book Counseling Session"
         >
