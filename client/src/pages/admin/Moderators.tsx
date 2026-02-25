@@ -13,9 +13,9 @@ interface Student {
     };
 }
 
-const Students: React.FC = () => {
+const Moderators: React.FC = () => {
     const [username, setUsername] = useState("Admin");
-    const [students, setStudents] = useState<Student[]>([]);
+    const [moderators, setModerators] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -26,37 +26,37 @@ const Students: React.FC = () => {
         if (storedUsername) {
             setUsername(storedUsername);
         }
-        fetchStudents(currentPage);
+        fetchModerators(currentPage);
     }, [currentPage]);
 
-    const fetchStudents = async (page: number) => {
+    const fetchModerators = async (page: number) => {
         setLoading(true);
         try {
             const token = localStorage.getItem("authToken");
-            const res = await fetch(`${apiConfig.baseUrl}/admin/students?page=${page}&per_page=10`, {
+            const res = await fetch(`${apiConfig.baseUrl}/admin/moderators?page=${page}&per_page=10`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) {
                 const data = await res.json();
-                setStudents(data.students);
+                setModerators(data.moderators);
                 setTotalPages(data.pages);
             } else {
-                toast({ title: "Failed to fetch students", variant: "destructive" });
+                toast({ title: "Failed to fetch moderators", variant: "destructive" });
             }
         } catch (error) {
-            console.error("Error fetching students:", error);
-            toast({ title: "Error fetching students", variant: "destructive" });
+            console.error("Error fetching moderators:", error);
+            toast({ title: "Error fetching moderators", variant: "destructive" });
         } finally {
             setLoading(false);
         }
     };
 
-    const handleMakeModerator = async (targetUsername: string) => {
-        if (!window.confirm(`Are you sure you want to make ${targetUsername} a Moderator? They will be removed from this list.`)) return;
+    const handleRevokeModerator = async (targetUsername: string) => {
+        if (!window.confirm(`Are you sure you want to revoke Moderator status from ${targetUsername}? They will be demoted to Student.`)) return;
 
         try {
             const token = localStorage.getItem("authToken");
-            const res = await fetch(`${apiConfig.baseUrl}/admin/assign_moderator`, {
+            const res = await fetch(`${apiConfig.baseUrl}/admin/revoke_moderator`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -65,21 +65,21 @@ const Students: React.FC = () => {
                 body: JSON.stringify({ username: targetUsername })
             });
             if (res.ok) {
-                toast({ title: `${targetUsername} is now a Moderator!` });
-                fetchStudents(currentPage);
+                toast({ title: `${targetUsername} is no longer a Moderator.` });
+                fetchModerators(currentPage);
             } else {
                 const data = await res.json();
-                toast({ title: data.msg || "Failed to assign moderator", variant: "destructive" });
+                toast({ title: data.msg || "Failed to revoke moderator", variant: "destructive" });
             }
         } catch (error) {
-            console.error("Error assigning moderator:", error);
-            toast({ title: "Error assigning moderator", variant: "destructive" });
+            console.error("Error revoking moderator:", error);
+            toast({ title: "Error revoking moderator", variant: "destructive" });
         }
     };
 
     return (
         <AdminLayout
-            title="Student Directory"
+            title="Moderator Directory"
             icon={<Users className="text-blue-500" />}
             username={username}
         >
@@ -90,26 +90,26 @@ const Students: React.FC = () => {
             ) : (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {students.map((student) => (
-                            <div key={student.id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
+                        {moderators.map((moderator) => (
+                            <div key={moderator.id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
                                 <div className="p-6 flex flex-col items-center">
                                     <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-600 text-2xl font-bold">
-                                        {student.username.charAt(0).toUpperCase()}
+                                        {moderator.username.charAt(0).toUpperCase()}
                                     </div>
-                                    <h3 className="text-xl font-bold text-gray-800 mb-1">{student.username}</h3>
-                                    <p className="text-sm text-gray-500 mb-6">Student</p>
+                                    <h3 className="text-xl font-bold text-gray-800 mb-1">{moderator.username}</h3>
+                                    <p className="text-sm text-gray-500 mb-6">Moderator</p>
 
                                     <div className="w-full flex justify-between px-4 py-2 bg-gray-50 rounded-lg mb-2">
                                         <div className="flex flex-col items-center">
                                             <span className="text-xs text-gray-500 font-medium uppercase">Mood Checks</span>
                                             <span className="text-lg font-bold text-green-600 flex items-center gap-1">
-                                                <Activity size={16} /> {student.stats.mood_checkins}
+                                                <Activity size={16} /> {moderator.stats.mood_checkins}
                                             </span>
                                         </div>
                                         <div className="flex flex-col items-center">
                                             <span className="text-xs text-gray-500 font-medium uppercase">Resources</span>
                                             <span className="text-lg font-bold text-purple-600 flex items-center gap-1">
-                                                <BookOpen size={16} /> {student.stats.resources_viewed}
+                                                <BookOpen size={16} /> {moderator.stats.resources_viewed}
                                             </span>
                                         </div>
                                     </div>
@@ -118,10 +118,10 @@ const Students: React.FC = () => {
                                 <div className="bg-gray-50 p-3 border-t border-gray-100 flex justify-between items-center">
                                     <span className="text-xs text-gray-400">Daily Activity Summary</span>
                                     <button
-                                        onClick={() => handleMakeModerator(student.username)}
-                                        className="text-xs font-medium text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded transition-colors"
+                                        onClick={() => handleRevokeModerator(moderator.username)}
+                                        className="text-xs font-medium text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1 rounded transition-colors"
                                     >
-                                        Make Moderator
+                                        Revoke Moderator
                                     </button>
                                 </div>
                             </div>
@@ -151,9 +151,9 @@ const Students: React.FC = () => {
                         </div>
                     )}
 
-                    {students.length === 0 && (
+                    {moderators.length === 0 && (
                         <div className="text-center text-gray-500 mt-12">
-                            <p className="text-xl">No students found.</p>
+                            <p className="text-xl">No moderators found.</p>
                         </div>
                     )}
                 </>
@@ -162,4 +162,4 @@ const Students: React.FC = () => {
     );
 };
 
-export default Students;
+export default Moderators;

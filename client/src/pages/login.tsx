@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useLocation } from "wouter";
+import { Eye, EyeOff } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { jwtDecode } from "jwt-decode";
@@ -55,6 +56,7 @@ export default function Login() {
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+    const [showPassword, setShowPassword] = useState(false);
     const [, setLocation] = useLocation();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,6 +112,9 @@ export default function Login() {
             try {
                 const decoded = jwtDecode<TokenPayload>(data.access_token);
                 userRole = decoded?.role || "";
+                if (userRole) {
+                    localStorage.setItem("userRole", userRole);
+                }
             } catch (err) {
                 console.warn("Could not decode token:", err);
             }
@@ -159,13 +164,22 @@ export default function Login() {
                                     Forgot Password?
                                 </Link>
                             </div>
-                            <Input
-                                id="password"
-                                type="password"
-                                placeholder="Your password"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                            />
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Your password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                         </div>
                         <Button type="submit" disabled={isLoading || !formData.username || !formData.password}>
                             {isLoading ? "Signing In..." : "Sign In"}

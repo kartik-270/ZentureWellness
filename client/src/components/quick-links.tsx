@@ -20,7 +20,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/*Psychoeducational Hub*/}
-                    <div className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
+                    <div className="bg-gradient-to-r from-blue-400 to-cyan-200 text-white p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group">
                         <Link href="/psychoeducational-hub">
                             <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/30 transition-colors">
                                 <BookOpen
@@ -39,7 +39,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
 
                     {/* Book a Session */}
                     <div
-                        className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                        className="bg-gradient-to-r from-blue-400 to-cyan-200 text-white p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
                         data-testid="card-book-session"
                     >
                         <Link href="/book-appointment">
@@ -60,7 +60,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
 
                     {/* Peer Support */}
                     <div
-                        className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                        className="bg-gradient-to-r from-blue-400 to-cyan-200 text-white p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
                         data-testid="card-peer-support"
                     >
                         <Link href="/community">
@@ -82,7 +82,7 @@ export default function QuickLinks({ onChatTrigger }: QuickLinksProps) {
                     {/*Self-Assessment Tests*/}
                     <Link href="/self-assessment-tests">
                         <div
-                            className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+                            className="bg-gradient-to-r from-blue-400 to-cyan-200 text-white p-6 rounded-xl shadow-sm border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
                             data-testid="card-self-assessment"
                         >
                             <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/30 transition-colors">

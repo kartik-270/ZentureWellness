@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { Eye, EyeOff } from "lucide-react";
 import { apiConfig } from "@/lib/config";
 
 type ButtonProps = { children: React.ReactNode } & React.ComponentProps<'button'>;
@@ -45,6 +46,9 @@ export default function ForgotPassword() {
     const [otp, setOtp] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -204,25 +208,39 @@ export default function ForgotPassword() {
 
                     {step === 3 && (
                         <form onSubmit={handleResetPassword} className="space-y-6">
-                            <div className="space-y-2">
+                            <div className="space-y-2 relative">
                                 <Label htmlFor="newPassword">New Password</Label>
                                 <Input
                                     id="newPassword"
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     placeholder="Enter new password"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 focus:outline-none"
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-2 relative">
                                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                                 <Input
                                     id="confirmPassword"
-                                    type="password"
+                                    type={showConfirmPassword ? "text" : "password"}
                                     placeholder="Confirm new password"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 focus:outline-none"
+                                >
+                                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
                             </div>
                             <Button type="submit" disabled={isLoading}>
                                 {isLoading ? "Resetting..." : "Reset Password"}

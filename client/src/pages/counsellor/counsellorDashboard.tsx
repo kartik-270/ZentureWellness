@@ -28,12 +28,12 @@ const isSessionStarting = (appointmentDate: string) => {
   const appointmentTime = new Date(appointmentDate).getTime();
   const tenMinutesInMillis = 10 * 60 * 1000;
   // Show button 10 mins before and up to 50 mins after start time
-  return appointmentTime - now < tenMinutesInMillis && now - appointmentTime < 50 * 60 * 1000;
+  return appointmentTime - now < tenMinutesInMillis && now - appointmentTime < 45 * 60 * 1000;
 };
 
 const formatAppointments = (appointments: Appointment[]): Appointment[] => {
   const now = new Date();
-  const sessionDurationInMillis = 50 * 60 * 1000;
+  const sessionDurationInMillis = 45 * 60 * 1000;
 
   return appointments.map(app => {
     const appTime = new Date(app.date);
@@ -46,6 +46,7 @@ const formatAppointments = (appointments: Appointment[]): Appointment[] => {
     } else if (app.status === 'pending') {
       category = 'pending';
     } else if (isPast) {
+      // isPast is true if now > (appTime + 45 mins)
       category = 'completed';
     }
 
@@ -187,26 +188,28 @@ export default function CounsellorDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {upcomingAppointments.length > 0 ? (
                     upcomingAppointments.map((app) => (
-                      <div key={app.id} className="relative">
-                        <SessionCard
-                          title={app.studentName}
-                          subtitle={app.mode}
-                          meta={app.formattedTime}
-                        />
-                        {isSessionStarting(app.date) && app.mode !== 'in_person' && (
-                          <button
-                            onClick={() => handleStartSession(app.meeting_link)}
-                            className="absolute bottom-2 right-2 px-3 py-1 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-all shadow"
-                          >
-                            Start Session
-                          </button>
-                        )}
-                        {app.mode === 'in_person' && (
-                          <div className="absolute bottom-2 right-2 px-3 py-1 bg-gray-200 text-gray-700 text-xs rounded-md">
-                            In Person
-                          </div>
-                        )}
-                      </div>
+                      <SessionCard
+                        title={app.studentName}
+                        subtitle={app.mode}
+                        meta={app.formattedTime}
+                        action={
+                          <>
+                            {isSessionStarting(app.date) && app.mode !== 'in_person' && (
+                              <button
+                                onClick={() => handleStartSession(app.meeting_link)}
+                                className="w-full px-3 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-all shadow-sm font-medium"
+                              >
+                                Start Session
+                              </button>
+                            )}
+                            {app.mode === 'in_person' && (
+                              <div className="w-full px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-md text-center font-medium">
+                                In Person Meeting
+                              </div>
+                            )}
+                          </>
+                        }
+                      />
                     ))
                   ) : (
                     <p className="text-gray-500">No confirmed upcoming sessions.</p>

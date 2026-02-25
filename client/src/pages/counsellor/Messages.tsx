@@ -7,15 +7,15 @@ interface Conversation {
     user: { id: number; name: string; role: string };
     last_message: string;
     timestamp: string;
-    unread: number;
+    unread_count: number;
 }
 
 interface Message {
     id: number;
-    sender_id: number;
     content: string;
     timestamp: string;
     is_read: boolean;
+    is_sender: boolean;
 }
 
 export default function Messages() {
@@ -106,7 +106,7 @@ export default function Messages() {
                                     <span className="text-xs text-gray-400">{c.timestamp ? new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
                                 </div>
                                 <div className="text-sm text-gray-500 truncate">{c.last_message}</div>
-                                {c.unread > 0 && <span className="inline-block mt-2 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">{c.unread} new</span>}
+                                {c.unread_count > 0 && <span className="inline-block mt-2 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">{c.unread_count} new</span>}
                             </div>
                         ))}
                     </div>
@@ -129,11 +129,7 @@ export default function Messages() {
                         {/* Messages */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-4">
                             {messages.map(m => {
-                                const isMe = m.sender_id !== selectedUser.id; // Logic depends on knowing my own ID. 
-                                // Since I don't have my ID easily without context, I can infer it OR use boolean from backend? 
-                                // Actually endpoint returns raw data. 
-                                // Simplest: Check if sender_id === selectedUser.id (Incoming) else (Outgoing)
-                                const isIncoming = m.sender_id === selectedUser.id;
+                                const isIncoming = !m.is_sender;
                                 return (
                                     <div key={m.id} className={`flex ${isIncoming ? 'justify-start' : 'justify-end'}`}>
                                         <div className={`max-w-[70%] p-3 rounded-2xl shadow-sm text-sm ${isIncoming ? 'bg-white text-gray-800 rounded-bl-none' : 'bg-blue-600 text-white rounded-br-none'}`}>

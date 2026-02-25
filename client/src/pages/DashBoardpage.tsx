@@ -7,7 +7,7 @@ import { Link } from "wouter";
 import Navbar from "@/components/navbar";
 import HeroSection from "@/components/hero-section";
 import DailyCheckIn from "@/components/dailycheckin";
-import WellnessJourney from "@/components/WellnessJourney";
+import MoodReports from "@/components/MoodReports";
 import RecommendedForYou from "@/components/RecommendedForYou";
 import ConnectAndShare from "@/components/ConnectAndShare";
 import AiChatFab from "@/components/AiChatFab.tsx";
@@ -26,7 +26,16 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
+    const role = localStorage.getItem("userRole");
     setAuthToken(token);
+
+    if (token && role) {
+      if (role === 'counselor') {
+        window.location.href = '/counsellor/dashboard';
+      } else if (role === 'admin') {
+        window.location.href = '/admin/dashboard';
+      }
+    }
   }, []);
 
   const handleChatFabClick = () => {
@@ -42,7 +51,7 @@ export default function DashboardPage() {
       <Navbar />
 
       <main className="py-16 bg-background">
-        <div className="flex flex-col items-center gap-y-20">
+        <div className="flex flex-col items-center gap-y-3">
           <UpcomingStudentAppointments />
 
           {/* Quick Access to Messages */}
@@ -64,7 +73,7 @@ export default function DashboardPage() {
           </div>
 
           <DailyCheckIn />
-          <WellnessJourney />
+          <MoodReports />
           <RecommendedForYou />
           <ConnectAndShare />
         </div>

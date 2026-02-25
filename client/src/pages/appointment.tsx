@@ -41,6 +41,7 @@ interface Counselor {
   specialty: string;
   reviews: number;
   image: string;
+  meeting_location: string;
 }
 
 interface Appointment {
@@ -50,6 +51,7 @@ interface Appointment {
   mode: string;
   description: string;
   status: string;
+  location?: string;
 }
 
 const BookingPage: React.FC = () => {
@@ -194,6 +196,7 @@ const BookingPage: React.FC = () => {
           mode: mode,
           description: notes,
           status: data.appointment.status,
+          location: selectedCounselorDetails.meeting_location
         });
         setStep(3);
       } else {
@@ -292,22 +295,44 @@ const BookingPage: React.FC = () => {
                         {isLoading ? (
                           <p>Loading slots...</p>
                         ) : availableSlots.length > 0 ? (
-                          availableSlots.map((slot: any, i) => (
-                            <button
-                              key={i}
-                              disabled={!slot.available}
-                              onClick={() => setSelectedTime(slot.time)}
-                              className={`py-2 px-4 rounded-lg border text-sm transition-all
-                                ${!slot.available
-                                  ? "bg-gray-200 text-gray-400 cursor-not-allowed border-gray-200"
-                                  : selectedTime === slot.time
-                                    ? "bg-blue-600 text-white border-blue-600 shadow-md transform scale-105"
-                                    : "bg-white text-gray-700 hover:border-blue-400 hover:bg-blue-50"
-                                }`}
-                            >
-                              {slot.time}
-                            </button>
-                          ))
+                          availableSlots
+                            .filter((slot: any) => {
+                              if (!selectedDate) return true;
+                              const now = new Date();
+                              const isToday = selectedDate.getDate() === now.getDate() &&
+                                selectedDate.getMonth() === now.getMonth() &&
+                                selectedDate.getFullYear() === now.getFullYear();
+
+                              if (isToday) {
+                                // Simple time comparison: HH:MM
+                                const [slotHours, slotMins] = slot.time.split(':').map(Number);
+                                const currentHours = now.getHours();
+                                const currentMins = now.getMinutes();
+
+                                // Hide if slot time is <= current time
+                                // Using 30 mins buffer if needed, but user asked for "upto 3:30 pm slots should not be visible" at 4pm
+                                // So strictly older than now.
+                                if (slotHours < currentHours) return false;
+                                if (slotHours === currentHours && slotMins <= currentMins) return false;
+                              }
+                              return true;
+                            })
+                            .map((slot: any, i) => (
+                              <button
+                                key={i}
+                                disabled={!slot.available}
+                                onClick={() => setSelectedTime(slot.time)}
+                                className={`py-2 px-4 rounded-lg border text-sm transition-all
+                                  ${!slot.available
+                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed border-gray-200"
+                                    : selectedTime === slot.time
+                                      ? "bg-blue-600 text-white border-blue-600 shadow-md transform scale-105"
+                                      : "bg-white text-gray-700 hover:border-blue-400 hover:bg-blue-50"
+                                  }`}
+                              >
+                                {slot.time}
+                              </button>
+                            ))
                         ) : (
                           <p className="col-span-3 text-gray-500">No slots available</p>
                         )}
@@ -343,6 +368,15 @@ const BookingPage: React.FC = () => {
                   ))}
                 </div>
 
+                {mode === "Personal Meeting" && selectedCounselorDetails?.meeting_location && (
+                  <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h4 className="font-semibold text-yellow-800 mb-1 flex items-center gap-2">
+                      <User size={18} /> Meeting Location
+                    </h4>
+                    <p className="text-yellow-700">{selectedCounselorDetails.meeting_location}</p>
+                  </div>
+                )}
+
                 <textarea
                   placeholder="Additional notes..."
                   value={notes}
@@ -375,6 +409,9 @@ const BookingPage: React.FC = () => {
                 <p className="mb-2">Date: {appointment.date}</p>
                 <p className="mb-2">Time: {appointment.time}</p>
                 <p className="mb-2">Mode: {appointment.mode}</p>
+                {appointment.mode === "Personal Meeting" && appointment.location && (
+                  <p className="mb-2 text-blue-600"><strong>Location:</strong> {appointment.location}</p>
+                )}
                 <p className="mb-6">Status: {appointment.status}</p>
 
                 <div className="flex justify-center gap-4">

@@ -22,13 +22,14 @@ const SessionPage = () => {
   // Access & User State
   const [loading, setLoading] = useState(true);
   const [accessGranted, setAccessGranted] = useState(false);
-  const [user, setUser] = useState<{ name: string, id: number } | null>(null);
+  const [user, setUser] = useState<{ id: number; name: string; role: string } | null>(null);
+  const [appointmentId, setAppointmentId] = useState<number | null>(null);
   const [sessionMode, setSessionMode] = useState('video_call');
   const [errorHeader, setErrorHeader] = useState("Access Denied");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Connection State
-  const [status, setStatus] = useState("Initializing...");
+  const [status, setStatus] = useState("Initializing connection...");
   const [peerConnected, setPeerConnected] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null); // Seconds remaining
 
@@ -54,13 +55,56 @@ const SessionPage = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // --- Actions ---
+
+  const handleRedirection = () => {
+    // Backend uses 'counselor' (one L), ensure we match it
+    const role = user?.role || localStorage.getItem('userRole') || 'student';
+    console.log("Redirecting for role:", role);
+
+    if (role === 'counselor') {
+      window.location.href = '/counsellor/dashboard';
+    } else if (role === 'admin') {
+      window.location.href = '/admin/dashboard';
+    } else {
+      window.location.href = '/dashboard';
+    }
+  };
+
+  const hangup = async () => {
+    if (confirm("Are you sure you want to end the session?")) {
+      const role = user?.role || localStorage.getItem('userRole') || 'student';
+
+      // If student, ask for messaging permission
+      if (role === 'student' && appointmentId) {
+        if (confirm("Allow counselor to send follow-up messages?")) {
+          try {
+            const token = localStorage.getItem('authToken');
+            await fetch(`${apiConfig.baseUrl}/appointments/${appointmentId}/messaging-permission`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ allow_messaging: true })
+            });
+          } catch (e) {
+            console.error("Failed to save permission:", e);
+          }
+        }
+      }
+
+      handleRedirection();
+    }
+  };
+
   // Timer Logic
   useEffect(() => {
     if (timeLeft === null) return;
 
     if (timeLeft <= 0) {
       alert("Session time has ended.");
-      window.location.href = '/dashboard';
+      handleRedirection();
       return;
     }
 
@@ -69,7 +113,7 @@ const SessionPage = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [timeLeft, handleRedirection]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -92,6 +136,7 @@ const SessionPage = () => {
         const data = await res.json();
         if (data.allowed) {
           setUser(data.user);
+          setAppointmentId(data.appointment_id);
           setSessionMode(data.mode);
           setAccessGranted(true);
 
@@ -141,10 +186,10 @@ const SessionPage = () => {
     });
 
     socket.on('user-connected', (userId) => {
-      console.log("Peer Connected:", userId);
+      console.log("A peer joined the room:", userId);
       setStatus("Peer joined. Establishing secure connection...");
       setPeerConnected(true);
-      // Initiator creates offer
+      // The person who was already in the room initiates the offer
       createOffer();
     });
 
@@ -197,11 +242,28 @@ const SessionPage = () => {
     initMedia();
 
     return () => {
+      console.log("Cleaning up session...");
       socket.disconnect();
       if (localStream) localStream.getTracks().forEach(t => t.stop());
       if (pcRef.current) pcRef.current.close();
     };
   }, [accessGranted, sessionId]);
+
+  // --- Stream Element Assignment ---
+  // Ensuring srcObject is set even when elements are conditionally rendered
+  useEffect(() => {
+    if (localVideoRef.current && localStream) {
+      console.log("Setting local video srcObject");
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream, localVideoRef.current, isVideoOff]);
+
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStream) {
+      console.log("Setting remote video srcObject");
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream, remoteVideoRef.current]);
 
 
   // --- WebRTC Core ---
@@ -209,10 +271,12 @@ const SessionPage = () => {
   const createPeerConnection = () => {
     if (pcRef.current) return pcRef.current;
 
+    console.log("Creating RTCPeerConnection");
     const pc = new RTCPeerConnection(RTC_CONFIG);
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
+        console.log("Local ICE Candidate found");
         socketRef.current?.emit('ice-candidate', {
           roomId: sessionId,
           candidate: event.candidate
@@ -220,14 +284,23 @@ const SessionPage = () => {
       }
     };
 
+    pc.onconnectionstatechange = () => {
+      console.log("Connection State Change:", pc.connectionState);
+      if (pc.connectionState === 'connected') setStatus("Securely Connected");
+      if (pc.connectionState === 'failed') setStatus("Connection Failed. Retrying...");
+    };
+
     pc.ontrack = (event) => {
-      setRemoteStream(event.streams[0]);
-      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = event.streams[0];
+      console.log("Remote track received:", event.track.kind);
+      const stream = event.streams[0];
+      setRemoteStream(stream);
+      setPeerConnected(true);
       setStatus("Active Session");
     };
 
     // Add local tracks
     if (localStream) {
+      console.log("Adding local tracks to PC");
       localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
     }
 
@@ -236,28 +309,48 @@ const SessionPage = () => {
   };
 
   const createOffer = async () => {
+    console.log("Creating Offer");
     const pc = createPeerConnection();
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    socketRef.current?.emit('offer', { roomId: sessionId, offer });
+    try {
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      socketRef.current?.emit('offer', { roomId: sessionId, offer });
+    } catch (err) {
+      console.error("Offer Creation Error:", err);
+    }
   };
 
   const handleOffer = async (data: any) => {
+    console.log("Handling Offer");
     const pc = createPeerConnection();
-    await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    socketRef.current?.emit('answer', { roomId: sessionId, answer });
+    try {
+      await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      socketRef.current?.emit('answer', { roomId: sessionId, answer });
+    } catch (err) {
+      console.error("Handle Offer Error:", err);
+    }
   };
 
   const handleAnswer = async (data: any) => {
+    console.log("Handling Answer");
     if (!pcRef.current) return;
-    await pcRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+    try {
+      await pcRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+    } catch (err) {
+      console.error("Handle Answer Error:", err);
+    }
   };
 
   const handleCandidate = async (data: any) => {
+    console.log("Adding Remote ICE Candidate");
     if (!pcRef.current) return;
-    await pcRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+    try {
+      await pcRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+    } catch (err) {
+      console.error("Handle Candidate Error:", err);
+    }
   };
 
 
@@ -283,10 +376,6 @@ const SessionPage = () => {
     socketRef.current?.emit('chat-message', { roomId: sessionId, message: inputText });
     setMessages(prev => [...prev, { sender: "You", text: inputText }]);
     setInputText("");
-  };
-
-  const hangup = () => {
-    if (confirm("Are you sure you want to end the session?")) window.location.href = '/dashboard';
   };
 
 
@@ -409,7 +498,7 @@ const SessionPage = () => {
                 <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center mb-4">
                   <VideoIcon className="w-10 h-10 opacity-50" />
                 </div>
-                <p>Waiting for counselor video...</p>
+                <p>{peerConnected ? "Establishing media stream..." : "Waiting for participant ..."}</p>
               </div>
             )}
             {/* Local PIP */}
@@ -426,6 +515,7 @@ const SessionPage = () => {
         ) : (
           // VOICE CALL LAYOUT
           <div className="flex flex-col items-center justify-center space-y-8">
+            <audio ref={remoteVideoRef} autoPlay playsInline />
             <div className="relative">
               <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg z-10 relative">
                 <Phone className="w-12 h-12 text-white" />

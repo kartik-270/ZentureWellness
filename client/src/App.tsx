@@ -23,8 +23,10 @@ import CrisisEscalation from "./pages/admin/CrisisiEscalation";
 import CounselorAvailability from "./pages/admin/CounselorAvailability";
 import SettingsPage from "./pages/admin/Setting";
 import Students from "./pages/admin/Students";
+import Moderators from "./pages/admin/Moderators";
 import Reports from "./pages/admin/Reports";
 import Resources from "./pages/admin/ResourceManagement";
+import AdminCommunities from "./pages/admin/Communities";
 import AdminRegister from "./pages/adminRegister";
 import ForgotUsername from "./pages/ForgotUsename";
 import CounsellorRegister from "./pages/CounsellorRegister";
@@ -37,7 +39,7 @@ import Settings from "./pages/counsellor/Settings";
 import Chatbot from "./pages/Chatbot";
 import SessionPage from "./pages/SessionPage";
 import StudentMessages from "./pages/StudentMessages";
-
+import AiChatBubble from "./components/AiChatBubble";
 import ForgotPassword from "@/pages/ForgotPassword";
 
 function Router() {
@@ -68,6 +70,8 @@ function Router() {
       {/* Admin Routes */}
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/students" component={Students} />
+      <Route path="/admin/moderators" component={Moderators} />
+      <Route path="/admin/communities" component={AdminCommunities} />
       <Route path="/admin/crisis-escalation" component={CrisisEscalation} />
       <Route path="/admin/counselor-availability" component={CounselorAvailability} />
       <Route path="/admin/resources" component={Resources} />
@@ -95,6 +99,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
+        <AiChatBubble />
       </TooltipProvider>
     </QueryClientProvider>
   );

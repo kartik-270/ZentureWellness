@@ -52,7 +52,7 @@ export default function StudentMessages() {
     const fetchConversations = async () => {
         try {
             const token = localStorage.getItem("authToken");
-            const res = await fetch(`${apiConfig.baseUrl}/api/messages/conversations`, {
+            const res = await fetch(`${apiConfig.baseUrl}/messages/conversations`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) {
@@ -67,7 +67,7 @@ export default function StudentMessages() {
     const fetchMessages = async (userId: number) => {
         try {
             const token = localStorage.getItem("authToken");
-            const res = await fetch(`${apiConfig.baseUrl}/api/messages/${userId}`, {
+            const res = await fetch(`${apiConfig.baseUrl}/messages/${userId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) {
@@ -85,7 +85,7 @@ export default function StudentMessages() {
 
         try {
             const token = localStorage.getItem("authToken");
-            const res = await fetch(`${apiConfig.baseUrl}/api/messages`, {
+            const res = await fetch(`${apiConfig.baseUrl}/messages`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

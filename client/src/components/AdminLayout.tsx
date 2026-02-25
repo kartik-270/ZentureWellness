@@ -10,7 +10,9 @@ import {
     Settings,
     LogOut,
     Menu,
-    X
+    X,
+    MessageCircle,
+    Shield
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -76,6 +78,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, icon, userna
 
                     <NavItem href="/admin/dashboard" icon={Home} label="Dashboard Home" />
                     <NavItem href="/admin/students" icon={Users} label="Student Directory" />
+                    <NavItem href="/admin/moderators" icon={Shield} label="Moderator Directory" />
+                    <NavItem href="/admin/communities" icon={MessageCircle} label="Community Forums" />
                     <NavItem href="/admin/crisis-escalation" icon={AlertTriangle} label="Crisis & Escalation" />
                     <NavItem href="/admin/counselor-availability" icon={Stethoscope} label="Counselor Availability" />
                     <NavItem href="/admin/resources" icon={BookOpen} label="Resource Management" />
