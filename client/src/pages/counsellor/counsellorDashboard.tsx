@@ -14,7 +14,8 @@ import {
   User,
   X,
   MessageSquare,
-  ArrowRight
+  ArrowRight,
+  Clock
 } from "lucide-react";
 
 interface Appointment {
@@ -37,9 +38,10 @@ interface Client {
 
 const SESSION_DURATION = 45 * 60 * 1000;
 
-const isSessionStarting = (appointmentDate: string) => {
+const isSessionStarting = (app: Appointment) => {
+  if (app.status === "completed" || app.status === "canceled" || app.status === "rejected") return false;
   const now = Date.now();
-  const appointmentTime = new Date(appointmentDate).getTime();
+  const appointmentTime = new Date(app.date).getTime();
 
   return (
     appointmentTime - now <= 10 * 60 * 1000 &&
@@ -60,7 +62,7 @@ const formatAppointments = (appointments: Appointment[]): Appointment[] => {
       category = "canceled";
     } else if (app.status === "pending") {
       category = "pending";
-    } else if (isPast) {
+    } else if (app.status === "completed" || isPast) {
       category = "completed";
     }
 
@@ -117,47 +119,48 @@ export default function CounsellorDashboard() {
     };
   }, []);
 
-  const fetchDashboardData = async () => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      setError("Session expired. Please login again.");
-      setLocation("/login");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${apiConfig.baseUrl}/counsellor/dashboard-data`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (response.status === 401) {
-        localStorage.removeItem("authToken");
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        setError("No authentication token found. Please log in again.");
+        setLoading(false);
         setLocation("/login");
         return;
       }
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch dashboard data");
+      try {
+        const response = await fetch(
+          `${apiConfig.baseUrl}/counsellor/dashboard-data`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (response.status === 401) {
+          localStorage.removeItem("authToken");
+          setLocation("/login");
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch dashboard data");
+        }
+
+        const data = await response.json();
+
+        setCounsellorName(data.counsellorName);
+        setAppointments(formatAppointments(data.appointments || []));
+        setClients(data.clients || []);
+        setError(null);
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load dashboard.");
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const data = await response.json();
-
-      setCounsellorName(data.counsellorName);
-      setAppointments(formatAppointments(data.appointments || []));
-      setClients(data.clients || []);
-      setError(null);
-    } catch (err) {
-      console.error(err);
-      setError("Unable to load dashboard.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
     fetchDashboardData();
 
     const interval = setInterval(fetchDashboardData, 30000); // auto refresh every 30 sec
@@ -200,8 +203,10 @@ export default function CounsellorDashboard() {
       setError("Failed to update appointment.");
     }
   };
+
   if (loading)
     return <div className="text-center mt-20">Loading dashboard...</div>;
+
   const fetchStudentConfidential = async (studentId: number) => {
     const token = localStorage.getItem('authToken');
     try {
@@ -287,7 +292,7 @@ export default function CounsellorDashboard() {
                     Pending Requests ({pendingAppointments.length})
                   </h3>
                   <div className="grid md:grid-cols-2 gap-4">
-                    {pendingAppointments.map((app) => (
+                    {pendingAppointments.map((app: any) => (
                       <div key={app.id} className="bg-white p-4 rounded-lg shadow">
                         <p className="font-bold">{app.studentName}</p>
                         <p className="text-sm text-gray-600">
@@ -318,7 +323,7 @@ export default function CounsellorDashboard() {
                 <h3 className="text-xl font-semibold mb-4">
                   Upcoming Sessions ({upcomingAppointments.length})
                 </h3>
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {upcomingAppointments.length > 0 ? (
                     upcomingAppointments.map((app) => (
                       <SessionCard
@@ -327,14 +332,21 @@ export default function CounsellorDashboard() {
                         subtitle={app.mode}
                         meta={app.formattedTime}
                         action={
-                          isSessionStarting(app.date) && app.mode !== "in_person" && (
-                            <button
-                              onClick={() => handleStartSession(app.meeting_link)}
-                              className="w-full px-3 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-all font-medium"
-                            >
-                              Start Session
-                            </button>
-                          )
+                          <>
+                            {isSessionStarting(app) && app.mode !== 'in_person' && (
+                              <button
+                                onClick={() => handleStartSession(app.meeting_link)}
+                                className="w-full px-3 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-all shadow-sm font-medium"
+                              >
+                                Start Session
+                              </button>
+                            )}
+                            {app.mode === 'in_person' && (
+                              <div className="w-full px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-md text-center font-medium">
+                                In Person Meeting
+                              </div>
+                            )}
+                          </>
                         }
                       />
                     ))
@@ -344,6 +356,61 @@ export default function CounsellorDashboard() {
                 </div>
               </div>
 
+              <aside className="space-y-6">
+                <div className="bg-white/80 p-4 rounded-xl shadow">
+                  <h4 className="text-sm text-gray-500 uppercase">Today's Overview</h4>
+                  <p className="text-2xl font-semibold text-gray-800 mt-2">{upcomingAppointments.length} confirmed</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {pendingAppointments.length} pending • {canceledAppointments.length} cancelled
+                  </p>
+                </div>
+              </aside>
+            </div>
+
+            {/* Right Column Content */}
+            <div className="bg-gradient-to-r from-blue-600 to-cyan-500 text-black p-6 rounded-2xl shadow-xl lg:col-start-3 lg:row-start-1 h-fit">
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <User size={20} /> Client List ({clients.length})
+              </h3>
+              <div className="space-y-3 mb-8">
+                {clients.length > 0 ? (
+                  clients.map((client, i) => (
+                    <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm border border-blue-100">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs">
+                          {client.name.split(" ").map(n => n[0]).slice(0, 2).join("")}
+                        </div>
+                        <div>
+                          <div className="font-bold text-gray-900 text-sm">{client.name}</div>
+                          <div className="text-[10px] text-gray-500">{client.status}</div>
+                        </div>
+                      </div>
+                      <div className="text-[10px] bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full font-bold">{client.rating} ★</div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-gray-500 italic">No clients found.</p>
+                )}
+              </div>
+
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Clock size={20} /> History ({completedAppointments.length})
+              </h3>
+              <div className="space-y-3">
+                {completedAppointments.length > 0 ? (
+                  completedAppointments.slice(0, 5).map((app) => (
+                    <div key={app.id} className="bg-white/60 p-3 rounded-xl border border-white/40 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">{app.studentName}</p>
+                        <p className="text-[10px] text-gray-600">{app.formattedDate}</p>
+                      </div>
+                      <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Completed</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-gray-500 italic">No completed sessions.</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
