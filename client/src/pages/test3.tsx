@@ -32,11 +32,14 @@ const getScoreInterpretationGHQ = (score: number) => {
 };
 
 export default function GHQ12Test() {
-  const [answers, setAnswers] = useState(new Array(ghq12Questions.length).fill(null));
+  // Track selected option *index* per question (not score), to avoid double-highlight
+  const [selectedIndex, setSelectedIndex] = useState<(number | null)[]>(new Array(ghq12Questions.length).fill(null));
   const [step, setStep] = useState(0);
   const [showResults, setShowResults] = useState(false);
 
-  const totalScore = answers.reduce((acc, val) => acc + (val || 0), 0);
+  // Derive total score from selected indices
+  const totalScore = selectedIndex.reduce((acc: number, idx) =>
+    acc + (idx !== null ? scoreOptionsGHQ[idx].value : 0), 0);
   const scoreInterpretation = getScoreInterpretationGHQ(totalScore);
 
   useEffect(() => {
@@ -67,10 +70,10 @@ export default function GHQ12Test() {
     }
   };
 
-  const handleAnswerChange = (value: number) => {
-    const newAnswers = [...answers];
-    newAnswers[step] = value;
-    setAnswers(newAnswers);
+  const handleAnswerChange = (optionIndex: number) => {
+    const updated = [...selectedIndex];
+    updated[step] = optionIndex;
+    setSelectedIndex(updated);
   };
 
   const handleNextStep = () => {
@@ -88,10 +91,11 @@ export default function GHQ12Test() {
   };
 
   const handleRetakeTest = () => {
-    setAnswers(new Array(ghq12Questions.length).fill(null));
+    setSelectedIndex(new Array(ghq12Questions.length).fill(null));
     setStep(0);
     setShowResults(false);
   };
+
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -113,12 +117,12 @@ export default function GHQ12Test() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {scoreOptionsGHQ.map((option) => (
+                  {scoreOptionsGHQ.map((option, optionIdx) => (
                     <button
-                      key={option.value}
-                      onClick={() => handleAnswerChange(option.value)}
+                      key={option.label}
+                      onClick={() => handleAnswerChange(optionIdx)}
                       className={`py-3 px-4 rounded-lg text-center transition-all duration-200
-                        ${answers[step] === option.value
+                        ${selectedIndex[step] === optionIdx
                           ? "bg-blue-600 text-white shadow-md border-2 border-blue-700 scale-105"
                           : "bg-gray-200 text-gray-800 hover:bg-gray-300"
                         }`}
@@ -143,7 +147,7 @@ export default function GHQ12Test() {
                 </span>
                 <button
                   onClick={handleNextStep}
-                  disabled={answers[step] === null}
+                  disabled={selectedIndex[step] === null}
                   className="flex items-center gap-2 bg-blue-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:bg-gray-400 transition-colors"
                 >
                   {step < ghq12Questions.length - 1 ? "Next" : "Finish"}

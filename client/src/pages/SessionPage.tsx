@@ -47,6 +47,7 @@ const SessionPage = () => {
   // Refs
   const socketRef = useRef<Socket | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null); // Always in sync with localStream state
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
@@ -229,9 +230,19 @@ const SessionPage = () => {
         };
 
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        // Sync ref immediately (before React state update) so socket event handlers can use it
+        localStreamRef.current = stream;
         setLocalStream(stream);
 
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+
+        // If a peer connection already exists (peer joined before we got media), add tracks now
+        if (pcRef.current) {
+          console.log("PC already exists, adding late-arriving local tracks");
+          stream.getTracks().forEach(track => {
+            pcRef.current!.addTrack(track, stream);
+          });
+        }
 
       } catch (err) {
         console.error("Media Access Error:", err);
@@ -290,6 +301,19 @@ const SessionPage = () => {
       if (pc.connectionState === 'failed') setStatus("Connection Failed. Retrying...");
     };
 
+    // Auto-renegotiate when tracks are added after PC creation (handles late-stream race condition)
+    pc.onnegotiationneeded = async () => {
+      try {
+        if (pc.signalingState !== 'stable') return;
+        console.log("Renegotiating due to track addition...");
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socketRef.current?.emit('offer', { roomId: sessionId, offer });
+      } catch (e) {
+        console.error("Renegotiation error:", e);
+      }
+    };
+
     pc.ontrack = (event) => {
       console.log("Remote track received:", event.track.kind);
       const stream = event.streams[0];
@@ -298,10 +322,13 @@ const SessionPage = () => {
       setStatus("Active Session");
     };
 
-    // Add local tracks
-    if (localStream) {
+    // Add local tracks — use ref so we always get the live stream value
+    const stream = localStreamRef.current;
+    if (stream) {
       console.log("Adding local tracks to PC");
-      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+      stream.getTracks().forEach(track => pc.addTrack(track, stream));
+    } else {
+      console.warn("createPeerConnection: localStream not yet available, tracks will be added when stream arrives");
     }
 
     pcRef.current = pc;

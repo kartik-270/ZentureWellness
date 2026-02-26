@@ -440,7 +440,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Upcoming Appointments Card */}
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 cursor-pointer transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-2xl hover:bg-blue-50/50 hover:border-blue-100 relative hover:z-10">
             <h3 className="text-xl font-bold text-gray-800 mb-4">Upcoming Appointments</h3>
             {loadingAppointments ? (
               <p className="text-gray-500">Loading appointments...</p>
@@ -466,7 +466,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Counselor Status Card */}
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 cursor-pointer transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-2xl hover:bg-blue-50/50 hover:border-blue-100 relative hover:z-10">
             <h3 className="text-xl font-bold text-gray-800 mb-4">Counselor Status at a Glance</h3>
             {loadingAnalytics ? <p className="text-gray-500">Loading...</p> : (
               <div className="space-y-2 text-gray-700">

@@ -380,7 +380,7 @@ const AiChatBubble: React.FC = () => {
                                     {isListening ? <MicOff size={20} /> : <Mic size={20} />}
                                 </button>
                                 <button
-                                    onClick={() => setLocation('/appointment')}
+                                    onClick={() => setLocation('/book-appointment')}
                                     className="text-gray-400 hover:text-blue-600 transition-colors"
                                     title="Book Counseling Session"
                                 >

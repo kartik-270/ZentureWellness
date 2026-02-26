@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Play, BookOpen, Headphones, X, Smile, Search, Gamepad2, Globe } from "lucide-react";
 import { apiConfig } from "@/lib/config";
+import DailyWellnessCorner from "./DailyWellnessCorner";
 
 const renderIcon = (type: string) => {
     switch (type) {
@@ -122,8 +123,12 @@ export default function Psychoeducational() {
                 </div>
             </div>
 
-            {filteredData.length > 0 ? (
+            {/* ── Resource Grid ── */}
+            {filteredData.length > 0 || true ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+                    {/* Daily Wellness Corner card — always first */}
+                    <DailyWellnessCorner />
+
                     {filteredData.map((item, index) => (
                         <div
                             key={index}
@@ -161,77 +166,79 @@ export default function Psychoeducational() {
                 </div>
             )}
 
-            {isModalOpen && currentItem && (
-                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-                    <div className="relative z-10 w-full max-w-3xl bg-card rounded-2xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 max-h-[90vh] overflow-y-auto">
-                        <button
-                            className="absolute top-3 right-3 bg-background/50 text-foreground p-1.5 rounded-full hover:bg-muted z-20"
-                            onClick={() => setIsModalOpen(false)}
-                        >
-                            <X size={20} />
-                        </button>
+            {
+                isModalOpen && currentItem && (
+                    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+                        <div className="relative z-10 w-full max-w-3xl bg-card rounded-2xl shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 max-h-[90vh] overflow-y-auto">
+                            <button
+                                className="absolute top-3 right-3 bg-background/50 text-foreground p-1.5 rounded-full hover:bg-muted z-20"
+                                onClick={() => setIsModalOpen(false)}
+                            >
+                                <X size={20} />
+                            </button>
 
-                        {currentItem.type === "video" && (
-                            <div className="aspect-video w-full bg-black">
-                                {getYouTubeEmbedUrl(currentItem.url) ? (
-                                    <iframe
-                                        className="w-full h-full"
-                                        src={getYouTubeEmbedUrl(currentItem.url)}
-                                        frameBorder="0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                    ></iframe>
-                                ) : isDirectMedia(currentItem.url) ? (
-                                    <video controls className="w-full h-full" src={getSourceUrl(currentItem.url)} />
-                                ) : (
-                                    <div className="flex items-center justify-center h-full text-white">Video unavailable</div>
-                                )}
-                            </div>
-                        )}
-
-                        {currentItem.type === "audio" && (
-                            <div className="w-full bg-muted p-8 flex flex-col items-center justify-center">
-                                <Headphones size={48} className="mb-4 text-primary" />
-                                {isDirectMedia(currentItem.url) ? (
-                                    <audio controls className="w-full max-w-md" src={getSourceUrl(currentItem.url)} />
-                                ) : (
-                                    <a href={currentItem.url} target="_blank" className="text-blue-500 underline">Listen External Audio</a>
-                                )}
-                            </div>
-                        )}
-
-                        <div className="p-6">
-                            <div className="flex justify-between items-start mb-2">
-                                <h2 className="text-xl font-bold">{currentItem.title}</h2>
-                                <span className="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-full font-semibold">
-                                    {currentItem.language || "English"}
-                                </span>
-                            </div>
-                            <p className="text-muted-foreground mb-4">{currentItem.description}</p>
-
-                            {currentItem.type === "article" && currentItem.url && item_is_image(currentItem.url) && (
-                                <div className="mb-6 rounded-xl overflow-hidden shadow-sm">
-                                    <img src={getSourceUrl(currentItem.url)} alt="Header" className="w-full max-h-80 object-cover" />
+                            {currentItem.type === "video" && (
+                                <div className="aspect-video w-full bg-black">
+                                    {getYouTubeEmbedUrl(currentItem.url) ? (
+                                        <iframe
+                                            className="w-full h-full"
+                                            src={getYouTubeEmbedUrl(currentItem.url)}
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        ></iframe>
+                                    ) : isDirectMedia(currentItem.url) ? (
+                                        <video controls className="w-full h-full" src={getSourceUrl(currentItem.url)} />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-white">Video unavailable</div>
+                                    )}
                                 </div>
                             )}
 
-                            {currentItem.content && (
-                                <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 mb-6 whitespace-pre-wrap">
-                                    {currentItem.content}
+                            {currentItem.type === "audio" && (
+                                <div className="w-full bg-muted p-8 flex flex-col items-center justify-center">
+                                    <Headphones size={48} className="mb-4 text-primary" />
+                                    {isDirectMedia(currentItem.url) ? (
+                                        <audio controls className="w-full max-w-md" src={getSourceUrl(currentItem.url)} />
+                                    ) : (
+                                        <a href={currentItem.url} target="_blank" className="text-blue-500 underline">Listen External Audio</a>
+                                    )}
                                 </div>
                             )}
 
-                            {currentItem.type === "article" && currentItem.url && !item_is_image(currentItem.url) && (
-                                <a href={currentItem.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-2 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors">
-                                    <BookOpen size={18} /> Read Full Document
-                                </a>
-                            )}
+                            <div className="p-6">
+                                <div className="flex justify-between items-start mb-2">
+                                    <h2 className="text-xl font-bold">{currentItem.title}</h2>
+                                    <span className="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-full font-semibold">
+                                        {currentItem.language || "English"}
+                                    </span>
+                                </div>
+                                <p className="text-muted-foreground mb-4">{currentItem.description}</p>
+
+                                {currentItem.type === "article" && currentItem.url && item_is_image(currentItem.url) && (
+                                    <div className="mb-6 rounded-xl overflow-hidden shadow-sm">
+                                        <img src={getSourceUrl(currentItem.url)} alt="Header" className="w-full max-h-80 object-cover" />
+                                    </div>
+                                )}
+
+                                {currentItem.content && (
+                                    <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 mb-6 whitespace-pre-wrap">
+                                        {currentItem.content}
+                                    </div>
+                                )}
+
+                                {currentItem.type === "article" && currentItem.url && !item_is_image(currentItem.url) && (
+                                    <a href={currentItem.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-2 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors">
+                                        <BookOpen size={18} /> Read Full Document
+                                    </a>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }
 
