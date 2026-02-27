@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { apiConfig } from "@/lib/config";
-import CounsellorSidebar from '@/components/CounsellorSidebar';
-import { Send, User as UserIcon, MoreVertical } from 'lucide-react';
+import CounsellorLayout from '@/components/CounsellorLayout';
+import { Send, User as UserIcon, MoreVertical, MessageSquare, ChevronLeft } from 'lucide-react';
 
 interface Conversation {
     user: { id: number; name: string; role: string };
@@ -23,11 +23,8 @@ export default function Messages() {
     const [selectedUser, setSelectedUser] = useState<any>(null); // Conversation.user
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState("");
+    const [showMobileChat, setShowMobileChat] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
-    const currentUserId = Number(localStorage.getItem("userId") || 0); // Need to store this on login! usually 
-
-    // Mock ID fix - in real app store this in context
-    // For now assuming we can get "You" status properly
 
     useEffect(() => { fetchConversations(); }, []);
 
@@ -87,53 +84,105 @@ export default function Messages() {
         } catch (e) { }
     };
 
+    const handleSelectConversation = (user: any) => {
+        setSelectedUser(user);
+        setShowMobileChat(true);
+    };
+
     return (
-        <div className="flex h-screen bg-gray-50">
-            <CounsellorSidebar />
-            <div className="flex-1 flex overflow-hidden">
-                {/* Sidebar */}
-                <div className="w-80 bg-white border-r flex flex-col">
-                    <div className="p-4 border-b font-bold text-lg">Messages</div>
-                    <div className="flex-1 overflow-y-auto">
+        <CounsellorLayout title="Messages" icon={<MessageSquare />}>
+            <div className="flex bg-white rounded-3xl border border-gray-100 h-[calc(100vh-200px)] overflow-hidden shadow-sm">
+                {/* Conversation List */}
+                <div className={`w-full lg:w-80 border-r border-gray-50 flex flex-col ${showMobileChat ? 'hidden lg:flex' : 'flex'}`}>
+                    <div className="p-6 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between">
+                        <h2 className="text-sm font-black uppercase tracking-widest text-gray-500">Conversations</h2>
+                        <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                            <MessageSquare size={16} />
+                        </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-2 space-y-1">
                         {conversations.map(c => (
                             <div
                                 key={c.user.id}
-                                onClick={() => setSelectedUser(c.user)}
-                                className={`p-4 border-b cursor-pointer hover:bg-gray-50 transition ${selectedUser?.id === c.user.id ? 'bg-blue-50' : ''}`}
+                                onClick={() => handleSelectConversation(c.user)}
+                                className={`p-4 rounded-2xl cursor-pointer transition-all duration-200 group ${selectedUser?.id === c.user.id
+                                    ? 'bg-blue-600 shadow-xl shadow-blue-200'
+                                    : 'hover:bg-gray-50'
+                                    }`}
                             >
-                                <div className="flex justify-between mb-1">
-                                    <span className="font-semibold">{c.user.name}</span>
-                                    <span className="text-xs text-gray-400">{c.timestamp ? new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                                <div className="flex justify-between items-start mb-1">
+                                    <span className={`font-black uppercase text-xs tracking-tight ${selectedUser?.id === c.user.id ? 'text-white' : 'text-gray-900'}`}>
+                                        {c.user.name}
+                                    </span>
+                                    <span className={`text-[9px] font-bold ${selectedUser?.id === c.user.id ? 'text-blue-100' : 'text-gray-400'}`}>
+                                        {c.timestamp ? new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                    </span>
                                 </div>
-                                <div className="text-sm text-gray-500 truncate">{c.last_message}</div>
-                                {c.unread_count > 0 && <span className="inline-block mt-2 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">{c.unread_count} new</span>}
+                                <div className={`text-[10px] font-medium truncate ${selectedUser?.id === c.user.id ? 'text-blue-100' : 'text-gray-500'}`}>
+                                    {c.last_message}
+                                </div>
+                                {c.unread_count > 0 && (
+                                    <span className="inline-block mt-2 bg-red-500 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-red-400 shadow-sm">
+                                        {c.unread_count} New
+                                    </span>
+                                )}
                             </div>
                         ))}
+                        {conversations.length === 0 && (
+                            <div className="text-center py-20 opacity-30 grayscale">
+                                <MessageSquare size={48} className="mx-auto mb-4" />
+                                <p className="text-[10px] font-black uppercase tracking-widest">No active chats</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {/* Chat Area */}
                 {selectedUser ? (
-                    <div className="flex-1 flex flex-col bg-gray-100">
+                    <div className={`flex-1 flex flex-col bg-white ${showMobileChat ? 'flex' : 'hidden lg:flex'}`}>
                         {/* Header */}
-                        <div className="bg-white p-4 border-b flex justify-between items-center shadow-sm">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                                    <UserIcon className="text-gray-500" />
+                        <div className="bg-white p-4 border-b border-gray-50 flex justify-between items-center shadow-sm relative z-10">
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={() => setShowMobileChat(false)}
+                                    className="lg:hidden p-2 hover:bg-gray-50 rounded-xl"
+                                >
+                                    <ChevronLeft size={20} />
+                                </button>
+                                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100">
+                                    <UserIcon className="text-blue-600" size={20} />
                                 </div>
-                                <h2 className="font-bold">{selectedUser.name}</h2>
+                                <div>
+                                    <h2 className="font-black text-gray-900 uppercase tracking-tight text-sm">{selectedUser.name}</h2>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">Online</span>
+                                    </div>
+                                </div>
                             </div>
-                            <button><MoreVertical className="text-gray-400" /></button>
+                            <button className="p-2 hover:bg-gray-50 rounded-xl text-gray-400">
+                                <MoreVertical size={20} />
+                            </button>
                         </div>
 
                         {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/50 custom-scrollbar">
                             {messages.map(m => {
                                 const isIncoming = !m.is_sender;
                                 return (
                                     <div key={m.id} className={`flex ${isIncoming ? 'justify-start' : 'justify-end'}`}>
-                                        <div className={`max-w-[70%] p-3 rounded-2xl shadow-sm text-sm ${isIncoming ? 'bg-white text-gray-800 rounded-bl-none' : 'bg-blue-600 text-white rounded-br-none'}`}>
-                                            {m.content}
+                                        <div className={`max-w-[80%] md:max-w-[70%] group`}>
+                                            <div className={`p-4 rounded-3xl text-sm font-medium shadow-sm relative ${isIncoming
+                                                ? 'bg-white text-gray-800 rounded-bl-none border border-gray-100'
+                                                : 'bg-gray-900 text-white rounded-br-none shadow-xl shadow-gray-200'
+                                                }`}>
+                                                {m.content}
+                                            </div>
+                                            <div className={`mt-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity ${isIncoming ? 'justify-start' : 'justify-end'}`}>
+                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-tight">
+                                                    {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 );
@@ -141,27 +190,35 @@ export default function Messages() {
                             <div ref={chatEndRef}></div>
                         </div>
 
-                        {/* Input */}
-                        <div className="bg-white p-4">
-                            <form onSubmit={sendMessage} className="flex gap-2">
+                        {/* Input Area */}
+                        <div className="p-6 bg-white border-t border-gray-50 shadow-2xl">
+                            <form onSubmit={sendMessage} className="flex gap-4">
                                 <input
                                     value={inputText}
                                     onChange={e => setInputText(e.target.value)}
-                                    className="flex-1 bg-gray-100 border-none rounded-full px-4 py-2 focus:ring-2 ring-blue-500 outline-none"
-                                    placeholder="Type a message..."
+                                    className="flex-1 bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-medium focus:ring-2 ring-blue-500 outline-none shadow-inner"
+                                    placeholder="Write your message..."
                                 />
-                                <button type="submit" className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition">
+                                <button
+                                    type="submit"
+                                    disabled={!inputText.trim()}
+                                    className="bg-blue-600 text-white p-4 rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 disabled:opacity-50 disabled:shadow-none"
+                                >
                                     <Send size={20} />
                                 </button>
                             </form>
                         </div>
                     </div>
                 ) : (
-                    <div className="flex-1 flex items-center justify-center text-gray-400 bg-gray-50">
-                        <p>Select a conversation to start messaging</p>
+                    <div className="flex-1 hidden lg:flex flex-col items-center justify-center text-gray-300 bg-white p-20 text-center">
+                        <div className="w-32 h-32 bg-gray-50 rounded-[3rem] flex items-center justify-center mb-8 border border-gray-100">
+                            <MessageSquare size={48} className="opacity-10" />
+                        </div>
+                        <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-2">Private Messaging</h3>
+                        <p className="text-xs text-gray-400 font-medium max-w-xs uppercase tracking-widest leading-relaxed">Select a conversation from the left to start communicating with students securely.</p>
                     </div>
                 )}
             </div>
-        </div>
+        </CounsellorLayout>
     );
 }

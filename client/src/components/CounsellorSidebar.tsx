@@ -1,8 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation, Link } from "wouter";
 import {
-  Menu,
-  X,
   LayoutDashboard,
   Calendar,
   Users,
@@ -10,16 +9,36 @@ import {
   BookOpen,
   Settings,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
+  X
 } from "lucide-react";
-
-import { useLocation } from "wouter";
 import logo from "../../../public/logo1.jpeg";
 
-export default function CounsellorSidebar() {
-  const [open, setOpen] = useState(true);
+interface CounsellorSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const NavItem = ({ href, icon: Icon, label, onClose }: { href: string; icon: any; label: string; onClose: () => void }) => {
   const [location] = useLocation();
+  const isActive = location === href;
+
+  return (
+    <Link href={href}>
+      <a
+        onClick={onClose}
+        className={`flex items-center space-x-4 p-3 rounded-xl transition-all duration-200 ${isActive
+            ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20 font-semibold"
+            : "hover:bg-gray-800 text-gray-400 hover:text-white"
+          }`}
+      >
+        <Icon size={22} />
+        <span className="text-sm font-medium">{label}</span>
+      </a>
+    </Link>
+  );
+};
+
+export default function CounsellorSidebar({ isOpen, onClose }: CounsellorSidebarProps) {
   const [username, setUsername] = useState("Counsellor");
 
   useEffect(() => {
@@ -42,69 +61,57 @@ export default function CounsellorSidebar() {
   ];
 
   return (
-    <aside
-      className={`flex-shrink-0 ${open ? "w-64" : "w-20"
-        } transition-all duration-300 bg-gray-900 text-white h-screen sticky top-0 flex flex-col z-50 shadow-xl border-r border-gray-800`}
-    >
-      {/* Header */}
-      <div className="p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img src={logo} alt="Zenture" className=" rounded-full w-10 h-10 object-contain" />
-          {open && <span className="font-bold text-lg">Zenture</span>}
-        </div>
-        <button
-          onClick={() => setOpen(!open)}
-          className="p-1 rounded-full text-white hover:bg-gray-800 transition-colors"
-        >
-          {open ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-        </button>
-      </div>
-
-      {/* Navigation */}
-      <nav className="mt-6 flex-1 space-y-2 overflow-y-auto custom-scrollbar">
-        {navItems.map((item, index) => {
-          const Icon = item.icon;
-          const isActive = location === item.href;
-
-          return (
-            <a
-              key={index}
-              href={item.href}
-              className={`flex items-center gap-4 py-3 pl-4 pr-2 rounded-lg mx-2 transition-colors duration-200 
-                ${isActive ? "bg-gray-800 text-blue-400" : "hover:bg-gray-800 text-gray-400 hover:text-blue-300"}
-              `}
-            >
-              <Icon size={22} className={isActive ? "text-blue-400" : "text-gray-400"} />
-              {open && <span className="text-sm font-medium">{item.label}</span>}
-            </a>
-          );
-        })}
-      </nav>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-gray-800 bg-gray-900">
-        <div className="flex flex-col gap-4">
-          <div className={`flex items-center ${open ? "justify-start" : "justify-center"} gap-3`}>
-            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
-              {username.charAt(0).toUpperCase()}
+    <aside className={`
+            fixed inset-y-0 left-0 z-50 w-72 bg-gray-900 text-gray-100 p-6 flex flex-col justify-between transform transition-transform duration-300 ease-in-out md:static md:translate-x-0
+            ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        `}>
+      <div>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white rounded-xl">
+              <img src={logo} alt="Zenture" className="w-8 h-8 object-contain" />
             </div>
-            {open && (
-              <div className="text-xs text-gray-400 overflow-hidden">
-                Signed in as <br />
-                <strong className="text-white truncate block max-w-[120px]" title={username}>{username}</strong>
-              </div>
-            )}
+            <span className="font-bold text-xl tracking-tight">Zenture</span>
           </div>
-
-          <button
-            onClick={handleLogout}
-            className={`flex items-center gap-3 text-red-400 hover:text-red-300 hover:bg-gray-800 p-2 rounded-lg transition-colors ${open ? "justify-start" : "justify-center"}`}
-            title="Log Out"
-          >
-            <LogOut size={20} />
-            {open && <span className="text-sm font-medium">Log Out</span>}
+          <button onClick={onClose} className="md:hidden p-2 hover:bg-gray-800 rounded-lg text-gray-400">
+            <X size={20} />
           </button>
         </div>
+
+        {/* Navigation */}
+        <nav className="space-y-2 mt-4">
+          {navItems.map((item, index) => (
+            <NavItem
+              key={index}
+              href={item.href}
+              icon={item.icon}
+              label={item.label}
+              onClose={onClose}
+            />
+          ))}
+        </nav>
+      </div>
+
+      {/* Footer */}
+      <div className="pt-6 border-t border-gray-800">
+        <div className="flex items-center gap-3 mb-6 p-2 rounded-xl bg-gray-800/50">
+          <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold shadow-lg">
+            {username.charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-white truncate">{username}</p>
+            <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">Counsellor Account</p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleLogout}
+          className="flex items-center space-x-4 p-3 rounded-xl text-red-400 hover:bg-red-400/10 hover:text-red-300 transition-all duration-200 w-full"
+        >
+          <LogOut size={20} />
+          <span className="text-sm font-bold">Logout</span>
+        </button>
       </div>
     </aside>
   );

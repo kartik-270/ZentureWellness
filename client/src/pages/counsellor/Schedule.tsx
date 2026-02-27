@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { apiConfig } from "@/lib/config";
-import CounsellorSidebar from '@/components/CounsellorSidebar';
-import { Loader2, Video, Phone, MessageSquare, MapPin } from 'lucide-react';
+import CounsellorLayout from '@/components/CounsellorLayout';
+import { Loader2, Video, Phone, MessageSquare, MapPin, Calendar as CalendarIcon } from 'lucide-react';
 
 interface Appointment {
     id: number;
-    studentName: string; // Backend needs to send this or we fetch
+    studentName: string;
     date: string;
     time: string;
     mode: string;
@@ -16,33 +16,61 @@ interface Appointment {
 
 const customCalendarStyles = `
 .react-calendar {
-  border: none;
+  border: none !important;
   font-family: inherit;
-  width: 100%;
-  border-radius: 0.5rem;
-  background: white;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  padding: 1rem;
+  width: 100% !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+.react-calendar__navigation {
+  margin-bottom: 2rem !important;
+}
+.react-calendar__navigation button {
+  min-width: 44px;
+  background: none;
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #111827;
+}
+.react-calendar__month-view__weekdays {
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #9ca3af;
+  margin-bottom: 1rem;
 }
 .react-calendar__tile {
-  height: 80px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding-top: 10px;
+  height: 60px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 1rem !important;
+  font-weight: 700 !important;
+  color: #4b5563 !important;
+  transition: all 0.2s !important;
+}
+.react-calendar__tile:enabled:hover, .react-calendar__tile:enabled:focus {
+  background-color: #f3f4f6 !important;
+  color: #111827 !important;
 }
 .react-calendar__tile--now {
-  background: #eff6ff;
+  background: #eff6ff !important;
+  color: #2563eb !important;
 }
 .react-calendar__tile--active {
-  background: #3b82f6 !important;
+  background: #2563eb !important;
   color: white !important;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4) !important;
 }
 .dot {
-  height: 8px;
-  width: 8px;
-  background-color: #ef4444;
+  height: 4px;
+  width: 4px;
+  background-color: currentColor;
   border-radius: 50%;
   margin-top: 4px;
 }
@@ -57,20 +85,12 @@ export default function Schedule() {
         const fetchSchedule = async () => {
             const token = localStorage.getItem('authToken');
             try {
-                // Re-using dashboard data endpoint or similar. 
-                // Ideally we should have a specific /counsellor/appointments endpoint but dashboard data has it.
-                // Let's assume we can filter from dashboard data or use a new endpoint.
-                // For speed, I'll use dashboard data logic from previous files or create a dedicated one if needed.
-                // The user didn't explicitly ask for a new endpoint for *schedule* but "show appropriate manner".
-                // I'll fetch /counsellor/dashboard-data as it has appointments.
                 const res = await fetch(`${apiConfig.baseUrl}/counsellor/dashboard-data`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
-                // Transform data
                 const apps = data.appointments.map((a: any) => {
                     const dateObj = new Date(a.date);
-                    // Use en-CA for YYYY-MM-DD format in local time
                     const dateStr = dateObj.toLocaleDateString('en-CA');
                     const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -94,7 +114,6 @@ export default function Schedule() {
     }, []);
 
     const getDayAppointments = (date: Date) => {
-        // Format selected calendar date to YYYY-MM-DD local
         const selectedDateStr = date.toLocaleDateString('en-CA');
         return appointments.filter(a => a.date === selectedDateStr);
     };
@@ -113,61 +132,90 @@ export default function Schedule() {
 
     const getModeIcon = (mode: string) => {
         switch (mode) {
-            case 'video_call': return <Video size={16} />;
-            case 'voice_call': return <Phone size={16} />;
-            case 'in_person': return <MapPin size={16} />;
-            default: return <MessageSquare size={16} />;
+            case 'video_call': return <Video size={14} />;
+            case 'voice_call': return <Phone size={14} />;
+            case 'in_person': return <MapPin size={14} />;
+            default: return <MessageSquare size={14} />;
         }
     };
 
     return (
-        <div className="flex h-screen bg-gray-50">
-            <CounsellorSidebar />
-            <div className="flex-1 overflow-y-auto p-8">
-                <style>{customCalendarStyles}</style>
-                <h1 className="text-3xl font-bold mb-8">My Schedule</h1>
-
-                <div className="grid md:grid-cols-2 gap-8">
-                    {/* Calendar Column */}
-                    <div>
+        <CounsellorLayout title="Schedule" icon={<CalendarIcon />}>
+            <style>{customCalendarStyles}</style>
+            <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 h-full">
+                {/* Calendar Column */}
+                <div className="lg:col-span-4 space-y-6">
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
                         <Calendar
                             onChange={(val) => val instanceof Date && setSelectedDate(val)}
                             value={selectedDate}
                             tileContent={getTileContent}
-                            className="shadow-md rounded-lg border-none"
                         />
                     </div>
 
-                    {/* List Column */}
-                    <div className="bg-white p-6 rounded-lg shadow-md h-fit min-h-[400px]">
-                        <h2 className="text-xl font-semibold mb-4 border-b pb-2">
-                            {selectedDate.toDateString()}
-                        </h2>
+                    <div className="bg-blue-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-blue-200 relative overflow-hidden group">
+                        <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                        <h3 className="text-2xl font-black uppercase tracking-tighter mb-2 leading-none">Quick Note</h3>
+                        <p className="text-blue-100 text-xs font-black uppercase tracking-widest opacity-80">
+                            Current session slot: 45 Mins
+                        </p>
+                    </div>
+                </div>
 
+                {/* List Column */}
+                <div className="lg:col-span-8 bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col h-full overflow-hidden">
+                    <div className="flex items-center justify-between mb-8 border-b border-gray-50 pb-6">
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-1">Agenda for</p>
+                            <h2 className="text-3xl font-black uppercase tracking-tighter text-gray-900">
+                                {selectedDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+                            </h2>
+                        </div>
+                        <div className="bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100">
+                            <span className="text-xs font-black uppercase tracking-widest text-gray-400">
+                                {selectedAppointments.length} Sessions
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
                         {loading ? (
-                            <div className="flex justify-center p-8"><Loader2 className="animate-spin text-blue-500" /></div>
+                            <div className="h-full flex items-center justify-center">
+                                <Loader2 className="animate-spin text-blue-500 w-10 h-10" />
+                            </div>
                         ) : selectedAppointments.length === 0 ? (
-                            <p className="text-gray-500 text-center py-8">No appointments scheduled for this day.</p>
+                            <div className="h-full flex flex-col items-center justify-center py-20 grayscale opacity-30 text-center">
+                                <CalendarIcon size={64} className="mb-4" />
+                                <p className="text-sm font-black uppercase tracking-widest">No activities scheduled.</p>
+                                <p className="text-[10px] font-medium mt-2 max-w-[200px]">You are free to relax or catch up on documentation.</p>
+                            </div>
                         ) : (
                             <div className="space-y-4">
                                 {selectedAppointments.map(app => (
-                                    <div key={app.id} className="p-4 border rounded-lg hover:bg-gray-50 transition border-l-4 border-l-blue-500">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div>
-                                                <h3 className="font-semibold">{app.studentName}</h3>
-                                                <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
-                                                    {getModeIcon(app.mode)}
-                                                    <span className="capitalize">{app.mode.replace('_', ' ')}</span>
-                                                </div>
-                                            </div>
-                                            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-medium">
-                                                {app.time}
-                                            </span>
+                                    <div key={app.id} className="p-6 bg-gray-50/50 border border-gray-100 rounded-3xl hover:border-blue-200 hover:bg-white transition-all duration-300 group flex items-center gap-6">
+                                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 group-hover:shadow-md transition-shadow">
+                                            <p className="text-xs font-black uppercase tracking-tighter text-gray-900">{app.time.split(' ')[0]}</p>
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">{app.time.split(' ')[1]}</p>
                                         </div>
-                                        <div className="mt-2 text-xs text-right">
-                                            <span className={`px-2 py-0.5 rounded ${app.status === 'booked' ? 'bg-green-100 text-green-700' : 'bg-gray-100'}`}>
-                                                {app.status}
-                                            </span>
+
+                                        <div className="flex-1">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h3 className="font-black uppercase tracking-tighter text-gray-900 leading-none mb-2">{app.studentName}</h3>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white rounded-lg border border-gray-100">
+                                                            <span className="text-blue-600">{getModeIcon(app.mode)}</span>
+                                                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">{app.mode.replace('_', ' ')}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm ${app.status === 'booked'
+                                                    ? 'bg-green-50 text-green-600 border-green-100'
+                                                    : 'bg-white text-gray-400 border-gray-100'
+                                                    }`}>
+                                                    {app.status}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -176,6 +224,6 @@ export default function Schedule() {
                     </div>
                 </div>
             </div>
-        </div>
+        </CounsellorLayout>
     );
 }

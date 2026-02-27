@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { apiConfig } from "@/lib/config";
-import CounsellorSidebar from '@/components/CounsellorSidebar';
-import { Search, User, ClipboardList, PlusCircle, Save } from 'lucide-react';
+import CounsellorLayout from '@/components/CounsellorLayout';
+import { Search, User, ClipboardList, Save, Users, Calendar } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 interface ClientBasic {
@@ -23,6 +23,7 @@ export default function Clients() {
     const [loading, setLoading] = useState(true);
     const [loadingDetails, setLoadingDetails] = useState(false);
     const [newNote, setNewNote] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
     const { toast } = useToast();
 
     useEffect(() => {
@@ -82,121 +83,168 @@ export default function Clients() {
         }
     };
 
+    const filteredClients = clients.filter(c =>
+        c.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
-        <div className="flex h-screen bg-gray-50">
-            <CounsellorSidebar />
-            <div className="flex-1 flex overflow-hidden">
-                {/* Client List (Sidebar within page) */}
-                <div className="w-1/3 bg-white border-r flex flex-col">
-                    <div className="p-4 border-b">
-                        <h1 className="text-2xl font-bold mb-4">Clients</h1>
+        <CounsellorLayout title="Clients" icon={<Users />}>
+            <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-200px)]">
+                {/* Client List */}
+                <div className="w-full lg:w-80 bg-white rounded-3xl border border-gray-100 flex flex-col shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-gray-50">
                         <div className="relative">
-                            <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold" size={16} />
                             <input
-                                className="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-lg outline-none focus:ring-2 ring-blue-500"
-                                placeholder="Search clients..."
+                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm outline-none focus:ring-2 ring-blue-500 transition-all font-medium"
+                                placeholder="Search students..."
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
                             />
                         </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto">
-                        {loading ? <p className="p-4 text-center">Loading...</p> : clients.map(c => (
+                    <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-10 gap-3">
+                                <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Loading...</p>
+                            </div>
+                        ) : filteredClients.map(c => (
                             <div
                                 key={c.id}
                                 onClick={() => handleSelectClient(c.id)}
-                                className={`p-4 border-b cursor-pointer hover:bg-blue-50 transition ${selectedClient?.student.id === c.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`}
+                                className={`p-4 rounded-2xl cursor-pointer transition-all duration-200 group ${selectedClient?.student.id === c.id
+                                    ? 'bg-blue-600 shadow-xl shadow-blue-200 translate-x-1'
+                                    : 'hover:bg-gray-50'
+                                    }`}
                             >
-                                <div className="font-semibold text-gray-800">{c.name}</div>
-                                {c.latest_note && <div className="text-xs text-gray-500 truncate mt-1">Note: {c.latest_note}</div>}
+                                <div className={`font-black text-sm uppercase tracking-tight ${selectedClient?.student.id === c.id ? 'text-white' : 'text-gray-900'}`}>
+                                    {c.name}
+                                </div>
+                                {c.latest_note && (
+                                    <div className={`text-[10px] truncate mt-1 font-medium italic ${selectedClient?.student.id === c.id ? 'text-blue-100' : 'text-gray-400 group-hover:text-gray-500'}`}>
+                                        "{c.latest_note}"
+                                    </div>
+                                )}
                             </div>
                         ))}
+                        {!loading && filteredClients.length === 0 && (
+                            <p className="text-center text-gray-400 text-xs py-10 font-medium">No students found.</p>
+                        )}
                     </div>
                 </div>
 
                 {/* Client Details */}
-                <div className="flex-1 overflow-y-auto bg-gray-50 p-8">
-                    {selectedClient ? (
-                        <div className="max-w-3xl mx-auto space-y-6">
-                            {/* Header */}
-                            <div className="bg-white p-6 rounded-xl shadow-sm">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-2xl">
-                                        {selectedClient.student.name[0]}
+                <div className="flex-1 overflow-y-auto bg-white rounded-3xl border border-gray-100 shadow-sm p-6 lg:p-10">
+                    {loadingDetails ? (
+                        <div className="h-full flex flex-col items-center justify-center gap-4">
+                            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-2xl animate-spin"></div>
+                            <p className="text-sm font-black text-gray-400 uppercase tracking-widest">Retrieving Student Data...</p>
+                        </div>
+                    ) : selectedClient ? (
+                        <div className="max-w-4xl mx-auto space-y-10">
+                            {/* Profile Header */}
+                            <div className="flex flex-col md:flex-row items-center gap-8 pb-10 border-b border-gray-50">
+                                <div className="w-32 h-32 bg-blue-50 rounded-[2.5rem] flex items-center justify-center text-blue-600 font-black text-5xl shadow-inner border-2 border-white">
+                                    {selectedClient.student.name[0]}
+                                </div>
+                                <div className="text-center md:text-left">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-3">
+                                        Student Profile
                                     </div>
-                                    {/* <div>
-                                        <h2 className="text-2xl font-bold">{selectedClient.student.name}</h2>
-                                        <p className="text-gray-500">{selectedClient.student.email}</p>
-                                    </div> */}
+                                    <h2 className="text-4xl font-black text-gray-900 uppercase tracking-tighter leading-none mb-2">{selectedClient.student.name}</h2>
+                                    <p className="text-gray-400 font-black text-sm tracking-widest flex items-center justify-center md:justify-start gap-2 uppercase">
+                                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                        {selectedClient.student.email}
+                                    </p>
                                 </div>
                             </div>
 
-                            {/* Private Notes Section */}
-                            <div className="bg-white p-6 rounded-xl shadow-sm">
-                                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                    <ClipboardList className="text-blue-600" /> Private Notes
-                                </h3>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                                {/* Private Notes Section */}
+                                <div className="space-y-6">
+                                    <h3 className="text-lg font-black uppercase tracking-widest flex items-center gap-3 text-gray-900">
+                                        <ClipboardList className="text-blue-600" size={20} /> Private Notes
+                                    </h3>
 
-                                <div className="mb-4">
-                                    <textarea
-                                        value={newNote}
-                                        onChange={e => setNewNote(e.target.value)}
-                                        className="w-full border rounded-lg p-3 outline-none focus:ring-2 ring-blue-500 min-h-[100px]"
-                                        placeholder="Add a confidential note about this client..."
-                                    />
-                                    <button
-                                        onClick={handeAddNote}
-                                        className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition"
-                                    >
-                                        <Save size={16} /> Save Note
-                                    </button>
-                                </div>
+                                    <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100 shadow-inner">
+                                        <textarea
+                                            value={newNote}
+                                            onChange={e => setNewNote(e.target.value)}
+                                            className="w-full bg-white border-none rounded-2xl p-4 text-sm outline-none focus:ring-2 ring-blue-500 min-h-[120px] shadow-sm font-medium placeholder:text-gray-300 transition-all font-mono"
+                                            placeholder="Add confidential clinical observations..."
+                                        />
+                                        <button
+                                            onClick={handeAddNote}
+                                            className="mt-4 w-full bg-gray-900 text-white px-6 py-4 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all shadow-xl shadow-gray-200"
+                                        >
+                                            <Save size={18} /> Save Session Note
+                                        </button>
+                                    </div>
 
-                                <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
-                                    {selectedClient.notes.map(n => (
-                                        <div key={n.id} className="bg-yellow-50 p-3 rounded-lg border border-yellow-100 text-sm">
-                                            <p className="text-gray-800 mb-1">{n.content}</p>
-                                            <p className="text-xs text-gray-400 text-right">{new Date(n.timestamp).toLocaleString()}</p>
-                                        </div>
-                                    ))}
-                                    {selectedClient.notes.length === 0 && <p className="text-gray-400 italic">No notes added yet.</p>}
-                                </div>
-                            </div>
-
-                            {/* Past Appointments */}
-                            <div className="bg-white p-6 rounded-xl shadow-sm">
-                                <h3 className="text-lg font-semibold mb-4">Recent History</h3>
-                                <table className="w-full text-sm text-left text-gray-500">
-                                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3">Date</th>
-                                            <th className="px-6 py-3">Mode</th>
-                                            <th className="px-6 py-3">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {selectedClient.appointments.map(a => (
-                                            <tr key={a.id} className="bg-white border-b hover:bg-gray-50">
-                                                <td className="px-6 py-4">{new Date(a.date).toLocaleDateString()}</td>
-                                                <td className="px-6 py-4 capitalize">{a.mode.replace('_', ' ')}</td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${a.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                                        {a.status}
+                                    <div className="space-y-4 max-h-[400px] lg:max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {selectedClient.notes.map(n => (
+                                            <div key={n.id} className="bg-gradient-to-br from-yellow-50 to-white p-5 rounded-2xl border border-yellow-100 shadow-sm relative overflow-hidden group">
+                                                <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-100/30 rounded-full -mr-8 -mt-8"></div>
+                                                <p className="text-gray-800 text-sm font-medium relative z-10 leading-relaxed font-mono italic">"{n.content}"</p>
+                                                <div className="mt-4 flex justify-end">
+                                                    <span className="text-[9px] font-black text-yellow-600/60 uppercase tracking-widest bg-white px-2 py-0.5 rounded-full border border-yellow-200/50">
+                                                        {new Date(n.timestamp).toLocaleString()}
                                                     </span>
-                                                </td>
-                                            </tr>
+                                                </div>
+                                            </div>
                                         ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        {selectedClient.notes.length === 0 && (
+                                            <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+                                                <p className="text-gray-400 font-bold text-xs uppercase tracking-widest">No clinical notes recorded.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
 
+                                {/* Past Appointments */}
+                                <div className="space-y-6">
+                                    <h3 className="text-lg font-black uppercase tracking-widest flex items-center gap-3 text-gray-900">
+                                        Recent Sessions History
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {selectedClient.appointments.map(a => (
+                                            <div key={a.id} className="flex items-center justify-between p-5 bg-white border border-gray-100 rounded-2xl hover:border-blue-200 transition-all group">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 group-hover:text-blue-500 transition-colors">
+                                                        <Calendar size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-black text-gray-900 uppercase tracking-tight text-xs">{new Date(a.date).toLocaleDateString()}</p>
+                                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest capitalize">{a.mode.replace('_', ' ')}</p>
+                                                    </div>
+                                                </div>
+                                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${a.status === 'completed'
+                                                    ? 'bg-green-50 text-green-600 border-green-100'
+                                                    : 'bg-gray-50 text-gray-400 border-gray-100'
+                                                    }`}>
+                                                    {a.status}
+                                                </span>
+                                            </div>
+                                        ))}
+                                        {selectedClient.appointments.length === 0 && (
+                                            <p className="text-center py-10 text-gray-400 font-bold text-xs uppercase tracking-widest">No previous sessions.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                            <User size={64} className="mb-4 opacity-50" />
-                            <p className="text-lg">Select a client to view details</p>
+                        <div className="h-full flex flex-col items-center justify-center text-gray-200 py-20">
+                            <div className="w-32 h-32 bg-gray-50 rounded-[3rem] flex items-center justify-center mb-6">
+                                <User size={64} className="opacity-20" />
+                            </div>
+                            <p className="text-xl font-black text-gray-300 uppercase tracking-widest">Select a student</p>
+                            <p className="text-xs text-gray-400 font-medium mt-2">Choose from the list to view profile and notes.</p>
                         </div>
                     )}
                 </div>
             </div>
-        </div>
+        </CounsellorLayout>
     );
 }

@@ -5,7 +5,7 @@ export default function SessionCard({
   action,
 }: {
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   meta?: string;
   action?: React.ReactNode;
 }) {

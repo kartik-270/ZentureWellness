@@ -281,14 +281,14 @@ const AiChatBubble: React.FC = () => {
                         className="mb-4 w-[380px] h-[550px] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden"
                     >
                         {/* Header */}
-                        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex items-center justify-between text-white shadow-md">
+                        <div className="bg-gradient-to-r from-blue-400 to-cyan-200  p-4 flex items-center justify-between text-white shadow-md">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center font-bold">
-                                    A
+                                    Z
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-sm">Zenture AI</h3>
-                                    <p className="text-[10px] text-blue-100 uppercase tracking-wider font-medium">Local Assisted Support</p>
+                                    <p className="text-[10px] text-blue-100  tracking-wider font-medium">Your Personal Wellness Companion</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -316,7 +316,7 @@ const AiChatBubble: React.FC = () => {
                                         <MessageCircle size={32} />
                                     </div>
                                     <h4 className="font-bold text-gray-800 mb-2">Welcome!</h4>
-                                    <p className="text-sm text-gray-500">I am your local AI assistant. How are you feeling today?</p>
+                                    <p className="text-sm text-gray-500">I’m your personal support assistant. What’s on your mind today?</p>
                                 </div>
                             )}
 

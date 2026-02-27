@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { apiConfig } from "@/lib/config";
-import CounsellorSidebar from '@/components/CounsellorSidebar';
-import { Save } from 'lucide-react';
+import CounsellorLayout from '@/components/CounsellorLayout';
+import { Save, User, Shield, Clock, MapPin, Briefcase } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 export default function Settings() {
@@ -11,6 +11,7 @@ export default function Settings() {
         availability: { days: [], timeRange: '09:00-17:00' }
     });
     const [loading, setLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
     const { toast } = useToast();
 
     const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -24,8 +25,6 @@ export default function Settings() {
                 });
                 if (res.ok) {
                     const data = await res.json();
-
-                    // Normalize availability
                     const availability = data.availability && typeof data.availability === 'object'
                         ? {
                             days: data.availability.days || ["Mon", "Tue", "Wed", "Thu", "Fri"],
@@ -66,6 +65,7 @@ export default function Settings() {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSaving(true);
         try {
             const token = localStorage.getItem('authToken');
             const res = await fetch(`${apiConfig.baseUrl}/counsellor/settings`, {
@@ -80,107 +80,158 @@ export default function Settings() {
                     meeting_location: profile.meeting_location
                 })
             });
-            if (res.ok) toast({ title: "Settings Saved", description: "Profile updated successfully." });
-        } catch (e) { toast({ title: "Error", description: "Update failed.", variant: "destructive" }); }
+            if (res.ok) {
+                toast({ title: "Settings Saved", description: "Profile updated successfully." });
+            }
+        } catch (e) {
+            toast({ title: "Error", description: "Update failed.", variant: "destructive" });
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const [startTime, endTime] = (profile.availability?.timeRange || "09:00-18:00").split("-");
 
     return (
-        <div className="flex h-screen bg-gray-50">
-            <CounsellorSidebar />
-            <div className="flex-1 overflow-y-auto p-8">
-                <h1 className="text-3xl font-bold mb-8">Settings & Profile</h1>
+        <CounsellorLayout title="Settings" icon={<Shield />}>
+            <div className="max-w-4xl mx-auto space-y-10 pb-20">
+                {loading ? (
+                    <div className="h-full flex flex-col items-center justify-center py-20 grayscale opacity-30 text-center">
+                        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-2xl animate-spin mb-4"></div>
+                        <p className="text-sm font-black uppercase tracking-widest">Loading Config...</p>
+                    </div>
+                ) : (
+                    <form onSubmit={handleSave} className="space-y-10">
+                        {/* Core Profile Card */}
+                        <div className="bg-white p-10 lg:p-14 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-bl-[4rem] group-hover:scale-110 transition-transform duration-700"></div>
+                            <h2 className="text-3xl font-black uppercase tracking-tighter text-gray-900 mb-10 flex items-center gap-4 relative z-10">
+                                <User className="text-blue-600" size={32} />
+                                Professional Identity
+                            </h2>
 
-                {loading ? <p>Loading...</p> : (
-                    <div className="max-w-2xl bg-white p-8 rounded-xl shadow-md">
-                        <form onSubmit={handleSave} className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Username (Read Only)</label>
-                                <input
-                                    disabled
-                                    value={profile.username}
-                                    className="w-full bg-gray-100 border rounded-lg px-4 py-2 text-gray-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
-                                <input
-                                    value={profile.specialization || ''}
-                                    onChange={e => setProfile({ ...profile, specialization: e.target.value })}
-                                    className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500"
-                                    placeholder="e.g. CBT, Anxiety, Depression"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Physical Meeting Location</label>
-                                <input
-                                    value={profile.meeting_location || ''}
-                                    onChange={e => setProfile({ ...profile, meeting_location: e.target.value })}
-                                    className="w-full border rounded-lg px-4 py-2 outline-none focus:ring-2 ring-blue-500"
-                                    placeholder="Enter full address for in-person consultations"
-                                />
-                                <p className="text-xs text-gray-500 mt-1">This will be shared with students who book personal meetings.</p>
-                            </div>
-
-                            {/* Graphical Availability Editor */}
-                            <div className="border-t pt-6">
-                                <h3 className="text-lg font-semibold text-gray-800 mb-4">Availability Settings</h3>
-
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Available Days</label>
-                                <div className="flex flex-wrap gap-2 mb-6">
-                                    {DAYS_OF_WEEK.map(day => (
-                                        <button
-                                            key={day}
-                                            type="button"
-                                            onClick={() => handleDayToggle(day)}
-                                            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all shadow-sm ${profile.availability.days.includes(day)
-                                                ? "bg-blue-600 text-white hover:bg-blue-700"
-                                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                                }`}
-                                        >
-                                            {day}
-                                        </button>
-                                    ))}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3">System Username</label>
+                                    <input
+                                        disabled
+                                        value={profile.username}
+                                        className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-black text-gray-400 uppercase tracking-widest shadow-inner cursor-not-allowed"
+                                    />
+                                    <p className="text-[9px] font-bold text-gray-400 mt-2 italic px-2">Read-only account identifier</p>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3">Core Specialization</label>
+                                    <div className="relative">
+                                        <input
+                                            value={profile.specialization || ''}
+                                            onChange={e => setProfile({ ...profile, specialization: e.target.value })}
+                                            className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm font-medium outline-none focus:ring-2 ring-blue-500 shadow-inner"
+                                            placeholder="e.g. Clinical Therapy, CBT..."
+                                        />
+                                        <Briefcase className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Location Details */}
+                        <div className="bg-white p-10 lg:p-14 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden group">
+                            <h2 className="text-3xl font-black uppercase tracking-tighter text-gray-900 mb-10 flex items-center gap-4">
+                                <MapPin className="text-blue-600" size={32} />
+                                Office Location
+                            </h2>
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3">In-Person Consultation Address</label>
+                                <textarea
+                                    value={profile.meeting_location || ''}
+                                    onChange={e => setProfile({ ...profile, meeting_location: e.target.value })}
+                                    className="w-full bg-gray-50 border-none rounded-3xl p-8 text-sm font-medium outline-none focus:ring-2 ring-blue-500 shadow-inner h-32 resize-none"
+                                    placeholder="Enter complete office address..."
+                                />
+                                <p className="text-[10px] font-black text-gray-400 mt-4 uppercase tracking-widest leading-relaxed px-2">
+                                    <span className="text-blue-600 font-black">Warning:</span> Shared automatically with students upon confirmed physical booking.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Availability Grid */}
+                        <div className="bg-gray-900 p-10 lg:p-14 rounded-[3rem] text-white shadow-2xl shadow-gray-300 relative overflow-hidden group">
+                            <div className="absolute -left-10 -bottom-10 w-64 h-64 bg-blue-600/20 rounded-full blur-[100px] group-hover:scale-125 transition-transform duration-700"></div>
+
+                            <h2 className="text-3xl font-black uppercase tracking-tighter mb-10 flex items-center gap-4 relative z-10">
+                                <Clock className="text-blue-400" size={32} />
+                                Operation Windows
+                            </h2>
+
+                            <div className="space-y-10 relative z-10">
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">Active Service Days</label>
+                                    <div className="flex flex-wrap gap-3">
+                                        {DAYS_OF_WEEK.map(day => (
+                                            <button
+                                                key={day}
+                                                type="button"
+                                                onClick={() => handleDayToggle(day)}
+                                                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border-2 ${profile.availability.days.includes(day)
+                                                    ? "bg-white text-gray-900 border-white shadow-xl shadow-white/10 scale-105"
+                                                    : "bg-transparent text-gray-500 border-gray-800 hover:border-gray-600"
+                                                    }`}
+                                            >
+                                                {day}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                    <div className="space-y-4">
+                                        <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Shift Commencement</label>
                                         <input
                                             type="time"
                                             value={startTime}
                                             onChange={(e) => handleTimeChange('start', e.target.value)}
-                                            className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                            className="w-full bg-gray-800 border-none rounded-2xl px-6 py-4 text-sm font-black text-white outline-none focus:ring-2 ring-blue-500 shadow-xl"
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                                    <div className="space-y-4">
+                                        <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Shift Conclusion</label>
                                         <input
                                             type="time"
                                             value={endTime}
                                             onChange={(e) => handleTimeChange('end', e.target.value)}
-                                            className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                            className="w-full bg-gray-800 border-none rounded-2xl px-6 py-4 text-sm font-black text-white outline-none focus:ring-2 ring-blue-500 shadow-xl"
                                         />
                                     </div>
                                 </div>
-                                <p className="text-xs text-gray-500 mt-4 leading-relaxed">
-                                    Define your working hours. The system will automatically generate 30-minute booking slots
-                                    for students within this range on your selected days.
-                                </p>
-                            </div>
 
-                            <div className="pt-6 border-t">
-                                <button type="submit" className="bg-blue-600 text-white px-8 py-2.5 rounded-lg hover:bg-blue-700 transition flex items-center gap-2 font-medium shadow-md">
-                                    <Save size={18} /> Save Settings
-                                </button>
+                                <div className="p-6 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm">
+                                    <p className="text-[10px] font-black text-blue-300/60 uppercase tracking-widest leading-relaxed">
+                                        The system dynamically partitions your selected time window into 30-minute professional consultation slots.
+                                    </p>
+                                </div>
                             </div>
-                        </form>
-                    </div>
+                        </div>
+
+                        {/* Action Bar */}
+                        <div className="flex justify-center lg:justify-end">
+                            <button
+                                type="submit"
+                                disabled={isSaving}
+                                className="bg-blue-600 text-white px-16 py-6 rounded-[2.5rem] font-black uppercase tracking-[0.2em] text-xs hover:bg-blue-700 transition-all shadow-2xl shadow-blue-200 disabled:opacity-50 flex items-center gap-4 group"
+                            >
+                                {isSaving ? (
+                                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                ) : (
+                                    <Save className="group-hover:rotate-12 transition-transform" size={20} />
+                                )}
+                                Synchronize Profile
+                            </button>
+                        </div>
+                    </form>
                 )}
             </div>
-        </div>
+        </CounsellorLayout>
     );
 }
