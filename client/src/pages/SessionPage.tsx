@@ -315,7 +315,7 @@ const SessionPage = () => {
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        console.log("Local ICE Candidate found");
+        console.log("Local ICE Candidate found:", event.candidate.type);
         socketRef.current?.emit('ice-candidate', {
           roomId: sessionId,
           candidate: event.candidate
@@ -326,7 +326,15 @@ const SessionPage = () => {
     pc.onconnectionstatechange = () => {
       console.log("Connection State Change:", pc.connectionState);
       if (pc.connectionState === 'connected') setStatus("Securely Connected");
-      if (pc.connectionState === 'failed') setStatus("Connection Failed. Retrying...");
+      if (pc.connectionState === 'failed') setStatus("Connection Failed: Mobile Network / Firewalled. Need TURN server.");
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      console.log("ICE Connection State:", pc.iceConnectionState);
+      if (pc.iceConnectionState === 'failed') {
+        console.error("ICE FAILED: This proves STUN failed and TURN is required (CG-NAT / strict firewall).");
+        setStatus("ICE Failed (Network blocked video). A TURN server is required.");
+      }
     };
 
     // Auto-renegotiate when tracks are added after PC creation (handles late-stream race condition)
