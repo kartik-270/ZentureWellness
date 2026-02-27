@@ -8,7 +8,23 @@ import { apiConfig } from "@/lib/config";
 const RTC_CONFIG = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:global.stun.twilio.com:3478' }
+    { urls: 'stun:global.stun.twilio.com:3478' },
+    // Free TURN server for NAT traversal (Metered OpenRelay)
+    {
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    }
   ]
 };
 
@@ -177,9 +193,11 @@ const SessionPage = () => {
   useEffect(() => {
     if (!accessGranted || !sessionId || !user) return;
 
-    // Connect Socket
+    // Connect Socket - Force polling to bypass Nginx WebSocket upgrade issues
     console.log("Connecting to SocketIO:", SOCKET_URL);
-    const socket = io(SOCKET_URL);
+    const socket = io(SOCKET_URL, {
+      transports: ['polling'] // Prevents the continuous reconnect loop
+    });
     socketRef.current = socket;
 
     socket.on('connect', () => {

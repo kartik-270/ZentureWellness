@@ -223,7 +223,7 @@ const BookingPage: React.FC = () => {
   const handleAddToCalendar = () => {
     if (!appointment) return;
     const startDateTime = new Date(`${appointment.date}T${appointment.time}`);
-    const endDateTime = new Date(startDateTime.getTime() + 30 * 60000);
+    const endDateTime = new Date(startDateTime.getTime() + 15 * 60000);
     const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=Counseling+Session+with+${appointment.counselor}&dates=${startDateTime.toISOString().replace(/[-:]/g, "").split(".")[0]}Z/${endDateTime.toISOString().replace(/[-:]/g, "").split(".")[0]}Z&details=${appointment.description}&location=Online&sf=true&output=xml`;
     window.open(url, "_blank");
   };
@@ -291,51 +291,48 @@ const BookingPage: React.FC = () => {
                   {selectedDate && selectedCounselorProfileId && (
                     <div className="mt-4">
                       <h3 className="font-semibold text-lg mb-2">Select Time Slot</h3>
-                      <div className="grid grid-cols-3 gap-2">
-                        {isLoading ? (
-                          <p>Loading slots...</p>
-                        ) : availableSlots.length > 0 ? (
-                          availableSlots
-                            .filter((slot: any) => {
-                              if (!selectedDate) return true;
-                              const now = new Date();
-                              const isToday = selectedDate.getDate() === now.getDate() &&
-                                selectedDate.getMonth() === now.getMonth() &&
-                                selectedDate.getFullYear() === now.getFullYear();
+                      <div className="max-h-48 overflow-y-auto pr-1">
+                        <div className="grid grid-cols-4 gap-2">
+                          {isLoading ? (
+                            <p className="col-span-4">Loading slots...</p>
+                          ) : availableSlots.length > 0 ? (
+                            availableSlots
+                              .filter((slot: any) => {
+                                if (!selectedDate) return true;
+                                const now = new Date();
+                                const isToday = selectedDate.getDate() === now.getDate() &&
+                                  selectedDate.getMonth() === now.getMonth() &&
+                                  selectedDate.getFullYear() === now.getFullYear();
 
-                              if (isToday) {
-                                // Simple time comparison: HH:MM
-                                const [slotHours, slotMins] = slot.time.split(':').map(Number);
-                                const currentHours = now.getHours();
-                                const currentMins = now.getMinutes();
-
-                                // Hide if slot time is <= current time
-                                // Using 30 mins buffer if needed, but user asked for "upto 3:30 pm slots should not be visible" at 4pm
-                                // So strictly older than now.
-                                if (slotHours < currentHours) return false;
-                                if (slotHours === currentHours && slotMins <= currentMins) return false;
-                              }
-                              return true;
-                            })
-                            .map((slot: any, i) => (
-                              <button
-                                key={i}
-                                disabled={!slot.available}
-                                onClick={() => setSelectedTime(slot.time)}
-                                className={`py-2 px-4 rounded-lg border text-sm transition-all
-                                  ${!slot.available
-                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed border-gray-200"
-                                    : selectedTime === slot.time
-                                      ? "bg-blue-600 text-white border-blue-600 shadow-md transform scale-105"
-                                      : "bg-white text-gray-700 hover:border-blue-400 hover:bg-blue-50"
-                                  }`}
-                              >
-                                {slot.time}
-                              </button>
-                            ))
-                        ) : (
-                          <p className="col-span-3 text-gray-500">No slots available</p>
-                        )}
+                                if (isToday) {
+                                  const [slotHours, slotMins] = slot.time.split(':').map(Number);
+                                  const currentHours = now.getHours();
+                                  const currentMins = now.getMinutes();
+                                  if (slotHours < currentHours) return false;
+                                  if (slotHours === currentHours && slotMins <= currentMins) return false;
+                                }
+                                return true;
+                              })
+                              .map((slot: any, i) => (
+                                <button
+                                  key={i}
+                                  disabled={!slot.available}
+                                  onClick={() => setSelectedTime(slot.time)}
+                                  className={`py-1.5 px-2 rounded-lg border text-xs transition-all
+                                    ${!slot.available
+                                      ? "bg-gray-200 text-gray-400 cursor-not-allowed border-gray-200"
+                                      : selectedTime === slot.time
+                                        ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                                        : "bg-white text-gray-700 hover:border-blue-400 hover:bg-blue-50"
+                                    }`}
+                                >
+                                  {slot.time}
+                                </button>
+                              ))
+                          ) : (
+                            <p className="col-span-4 text-gray-500">No slots available</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
