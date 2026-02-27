@@ -4,27 +4,11 @@ import { io, Socket } from "socket.io-client";
 import { Loader2, ShieldCheck, VideoOff, Mic, MicOff, Video as VideoIcon, VideoOff as VideoOffIcon, PhoneOff, MessageSquare, Send, X, Phone } from 'lucide-react';
 import { apiConfig } from "@/lib/config";
 
-// Configuration
-const RTC_CONFIG = {
+// Default Fallback Configuration
+const FALLBACK_RTC_CONFIG = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:global.stun.twilio.com:3478' },
-    // Free TURN server for NAT traversal (Metered OpenRelay)
-    {
-      urls: 'turn:openrelay.metered.ca:80',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:443',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
-    }
+    { urls: 'stun:global.stun.twilio.com:3478' }
   ]
 };
 
@@ -41,6 +25,7 @@ const SessionPage = () => {
   const [user, setUser] = useState<{ id: number; name: string; role: string } | null>(null);
   const [appointmentId, setAppointmentId] = useState<number | null>(null);
   const [sessionMode, setSessionMode] = useState('video_call');
+  const [turnServers, setTurnServers] = useState<any>(FALLBACK_RTC_CONFIG);
   const [errorHeader, setErrorHeader] = useState("Access Denied");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -170,6 +155,20 @@ const SessionPage = () => {
 
           // Initial mute state based on mode
           if (data.mode === 'message') setIsMuted(true);
+
+          // Fetch dynamic TURN credentials for reliable mobile-data video calls
+          try {
+            const turnRes = await fetch(`${apiConfig.baseUrl}/session/turn-credentials`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const turnData = await turnRes.json();
+            if (turnData.iceServers) {
+              console.log("Fetched Metered TURN Credentials successfully");
+              setTurnServers({ iceServers: turnData.iceServers });
+            }
+          } catch (turnErr) {
+            console.error("Failed to fetch TURN credentials, using fallback STUN:", turnErr);
+          }
 
         } else {
           fail("Session Unavailable", data.error || "You do not have permission to join this session.");
@@ -308,8 +307,8 @@ const SessionPage = () => {
   const createPeerConnection = () => {
     if (pcRef.current) return pcRef.current;
 
-    console.log("Creating RTCPeerConnection");
-    const pc = new RTCPeerConnection(RTC_CONFIG);
+    console.log("Creating RTCPeerConnection with servers:", turnServers);
+    const pc = new RTCPeerConnection(turnServers);
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
