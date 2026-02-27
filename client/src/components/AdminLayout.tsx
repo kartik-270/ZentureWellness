@@ -74,7 +74,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, icon, userna
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
                 <nav className="space-y-6 mt-12 md:mt-0">
-                    <h1 className="text-2xl font-bold text-white mb-8 hidden md:block">Zenture Admin</h1>
+                    <Link href="/">
+                        <h1 className="text-2xl font-bold text-white mb-8 hidden md:block">Zenture Admin</h1>
+                    </Link>
 
                     <NavItem href="/admin/dashboard" icon={Home} label="Dashboard Home" />
                     <NavItem href="/admin/students" icon={Users} label="Student Directory" />
