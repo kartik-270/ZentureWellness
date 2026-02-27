@@ -8,6 +8,7 @@ interface Message {
     text: string;
     isUser: boolean;
     followUps?: string[];
+    isCrisis?: boolean;
 }
 
 
@@ -132,6 +133,7 @@ const AiChatBubble: React.FC = () => {
                                     if (lastMsg && !lastMsg.isUser) {
                                         lastMsg.followUps = data.followUps;
                                         lastMsg.text = data.full_response;
+                                        lastMsg.isCrisis = data.is_crisis || false;
                                     }
                                     return newMessages;
                                 });
@@ -320,12 +322,22 @@ const AiChatBubble: React.FC = () => {
 
                             {messages.map((msg, i) => (
                                 <div key={i} className={`flex flex-col ${msg.isUser ? 'items-end' : 'items-start'}`}>
-                                    <div className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm ${msg.isUser
-                                        ? 'bg-blue-600 text-white rounded-br-none'
-                                        : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
-                                        }`}>
-                                        {msg.text}
-                                    </div>
+                                    {/* Crisis message gets a high-visibility warning style */}
+                                    {msg.isCrisis ? (
+                                        <div className="max-w-[92%] p-3 rounded-2xl text-sm shadow-md border border-red-200 bg-gradient-to-br from-red-50 to-orange-50 rounded-bl-none">
+                                            <div className="flex items-center gap-1.5 mb-1.5">
+                                                <span className="text-red-600 font-bold text-xs uppercase tracking-wider">⚠️ Crisis Support</span>
+                                            </div>
+                                            <p className="text-red-900 whitespace-pre-wrap">{msg.text}</p>
+                                        </div>
+                                    ) : (
+                                        <div className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm ${msg.isUser
+                                                ? 'bg-blue-600 text-white rounded-br-none'
+                                                : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                                            }`}>
+                                            {msg.text}
+                                        </div>
+                                    )}
                                     {!msg.isUser && msg.followUps && (
                                         <div className="mt-2 flex flex-wrap gap-2">
                                             {msg.followUps.map((q, j) => (

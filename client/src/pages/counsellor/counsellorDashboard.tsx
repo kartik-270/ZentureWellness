@@ -10,7 +10,6 @@ import {
   AlertTriangle,
   Shield,
   Phone,
-  Mail,
   User,
   X,
   MessageSquare,
@@ -230,6 +229,22 @@ export default function CounsellorDashboard() {
   const handleReviewAlert = (alert: any) => {
     setSelectedAlert(alert);
     fetchStudentConfidential(alert.user_id);
+  };
+
+  const handleMarkResolved = async (alertId: number) => {
+    const token = localStorage.getItem('authToken');
+    try {
+      await fetch(`${apiConfig.baseUrl}/counselor/alerts/high-risk/${alertId}/resolve`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      // Remove from the live list so it disappears instantly
+      setHighRiskAlerts(prev => prev.filter(a => a.id !== alertId));
+      setShowOutreachModal(false);
+      toast({ title: "Resolved", description: "Alert marked as resolved." });
+    } catch {
+      toast({ title: "Error", description: "Could not mark resolved.", variant: "destructive" });
+    }
   };
 
   const pendingAppointments = appointments.filter(app => app.category === 'pending');
@@ -455,19 +470,6 @@ export default function CounsellorDashboard() {
                   </a>
                 </div>
 
-                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-4 group hover:border-purple-200 transition-colors">
-                  <div className="p-3 bg-purple-100 rounded-xl text-purple-600">
-                    <Mail size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[10px] text-gray-500 uppercase font-extrabold tracking-widest">Email Address</p>
-                    <p className="text-base font-bold text-gray-800">{studentConfidential?.email}</p>
-                  </div>
-                  <a href={`mailto:${studentConfidential?.email}`} className="p-2 bg-purple-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all">
-                    Email
-                  </a>
-                </div>
-
                 <div className="pt-4 border-t border-gray-100">
                   <div className="p-4 bg-red-50 rounded-2xl border border-red-100">
                     <p className="text-[10px] text-red-500 uppercase font-extrabold mb-2">Emergency Contact (Parent)</p>
@@ -486,6 +488,14 @@ export default function CounsellorDashboard() {
                 >
                   <MessageSquare size={18} /> Open Direct Chat
                 </button>
+                {selectedAlert?.id && (
+                  <button
+                    onClick={() => handleMarkResolved(selectedAlert.id)}
+                    className="flex-1 py-4 bg-green-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-700 transition-colors"
+                  >
+                    ✓ Mark as Resolved
+                  </button>
+                )}
               </div>
             </div>
           </div>

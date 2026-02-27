@@ -224,6 +224,7 @@ export default function AdminDashboard() {
 
   // Real-time Alerts State
   const [highRiskAlerts, setHighRiskAlerts] = useState<any[]>([]);
+  const [loadingAlerts, setLoadingAlerts] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<any>(null);
   const [studentConfidential, setStudentConfidential] = useState<any>(null);
@@ -260,6 +261,7 @@ export default function AdminDashboard() {
   }, []);
 
   const fetchHighRiskAlerts = async () => {
+    setLoadingAlerts(true);
     try {
       const token = localStorage.getItem('authToken');
       const res = await fetch(`${apiConfig.baseUrl}/admin/alerts/high-risk`, {
@@ -268,8 +270,30 @@ export default function AdminDashboard() {
       if (res.ok) setHighRiskAlerts(await res.json());
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoadingAlerts(false);
     }
   };
+
+  const handleMarkResolved = async (alertId: number) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      await fetch(`${apiConfig.baseUrl}/admin/alerts/high-risk/${alertId}/resolve`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      // Optimistically update in-place
+      setHighRiskAlerts(prev => prev.map(a => a.id === alertId ? { ...a, is_resolved: true } : a));
+      setOverviewData((prev: any) => ({
+        ...prev,
+        unacknowledgedAlerts: Math.max(0, (prev?.unacknowledgedAlerts || 1) - 1)
+      }));
+      toast({ title: "Resolved", description: "Alert marked as resolved." });
+    } catch (e) {
+      toast({ title: "Error", description: "Could not resolve alert.", variant: "destructive" });
+    }
+  };
+
 
   const handleReviewAlert = async (alert: any) => {
     setSelectedAlert(alert);
@@ -606,25 +630,46 @@ export default function AdminDashboard() {
                     <Shield className="text-red-500" size={18} /> Recent Crisis Alerts
                   </h4>
                   <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                    {highRiskAlerts.length > 0 ? highRiskAlerts.map((alert: any, i: number) => (
+                    {loadingAlerts ? (
+                      <div className="flex items-center justify-center py-10 text-gray-400">
+                        <svg className="animate-spin h-6 w-6 mr-3 text-red-400" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                        </svg>
+                        Loading crisis alerts...
+                      </div>
+                    ) : highRiskAlerts.length > 0 ? highRiskAlerts.map((alert: any, i: number) => (
                       <div
                         key={i}
-                        onClick={() => handleReviewAlert(alert)}
-                        className={`p-4 rounded-xl border transition-all cursor-pointer ${selectedAlert?.id === alert.id ? 'border-red-500 bg-red-50' : 'border-gray-100 bg-gray-50 hover:border-red-200'}`}
+                        onClick={() => !alert.is_resolved && handleReviewAlert(alert)}
+                        className={`p-4 rounded-xl border transition-all ${alert.is_resolved
+                          ? 'border-green-200 bg-green-50 opacity-60 cursor-default'
+                          : selectedAlert?.id === alert.id
+                            ? 'border-red-500 bg-red-50 cursor-pointer'
+                            : 'border-gray-100 bg-gray-50 hover:border-red-200 cursor-pointer'
+                          }`}
                       >
                         <div className="flex justify-between items-start mb-2">
                           <span className="font-bold text-gray-800">{alert.username}</span>
-                          <span className="text-[10px] text-gray-500">{new Date(alert.timestamp).toLocaleString()}</span>
+                          <div className="flex items-center gap-2">
+                            {alert.is_resolved && (
+                              <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">RESOLVED</span>
+                            )}
+                            <span className="text-[10px] text-gray-500">{new Date(alert.timestamp).toLocaleString()}</span>
+                          </div>
                         </div>
                         <p className="text-sm text-gray-600 italic">"{alert.message}"</p>
-                        <div className="mt-2 flex gap-2">
-                          {alert.risk_factors?.map((f: string, fi: number) => (
-                            <span key={fi} className="text-[10px] bg-red-200 text-red-700 px-2 py-0.5 rounded-full font-bold uppercase">{f}</span>
-                          ))}
-                        </div>
+                        {!alert.is_resolved && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleMarkResolved(alert.id); }}
+                            className="mt-2 text-[11px] bg-green-600 text-white px-3 py-1 rounded-full hover:bg-green-700 font-bold transition-colors"
+                          >
+                            Mark Resolved
+                          </button>
+                        )}
                       </div>
                     )) : (
-                      <p className="text-gray-500 text-center py-8">No unacknowledged alerts found.</p>
+                      <p className="text-gray-500 text-center py-8">No crisis alerts found.</p>
                     )}
                   </div>
                 </div>
@@ -653,13 +698,6 @@ export default function AdminDashboard() {
                               <div>
                                 <p className="text-[10px] text-gray-500 uppercase font-bold">Student Phone</p>
                                 <p className="text-sm font-semibold text-blue-600 underline">{studentConfidential.phone}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <Mail size={16} className="text-gray-400" />
-                              <div>
-                                <p className="text-[10px] text-gray-500 uppercase font-bold">Email Address</p>
-                                <p className="text-sm font-semibold">{studentConfidential.email}</p>
                               </div>
                             </div>
                             <div className="mt-4 pt-4 border-t border-gray-200">

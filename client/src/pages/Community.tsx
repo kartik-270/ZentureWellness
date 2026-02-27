@@ -554,8 +554,8 @@ export default function Community() {
                 <p className="text-center text-gray-500 mt-10">No messages yet. Say hi!</p>
               ) : (
                 dmMessages.map((m, idx) => {
-                  const isMine = String(m.sender_id) === String(dmUserId) ? false : true;
-                  // Approximate isMine by checking if they are not the dmUserId
+                  const isMine = String(m.sender_id) === String(currentUserId);
+
                   return (
                     <div key={idx} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[75%] px-4 py-2 rounded-lg ${isMine ? 'bg-sky-600 text-white rounded-br-none' : 'bg-slate-100 text-gray-800 rounded-bl-none'}`}>

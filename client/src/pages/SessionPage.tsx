@@ -50,6 +50,7 @@ const SessionPage = () => {
   const localStreamRef = useRef<MediaStream | null>(null); // Always in sync with localStream state
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const sessionModeRef = useRef<string>('video_call'); // Ref to track sessionMode in closures
 
   // Scroll to bottom of chat
   useEffect(() => {
@@ -139,6 +140,7 @@ const SessionPage = () => {
           setUser(data.user);
           setAppointmentId(data.appointment_id);
           setSessionMode(data.mode);
+          sessionModeRef.current = data.mode; // Keep ref in sync
           setAccessGranted(true);
 
           // Calculate remaining time
@@ -181,8 +183,14 @@ const SessionPage = () => {
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      console.log("Socket Connected");
+      console.log("Socket Connected, SID:", socket.id);
       setStatus("Connected. Joining secure room...");
+      socket.emit('join-room', { roomId: sessionId, userId: user.id });
+    });
+
+    // Re-join room on reconnect to resolve 'Invalid session' error
+    socket.io.on('reconnect', () => {
+      console.log("Socket reconnected, re-joining room...");
       socket.emit('join-room', { roomId: sessionId, userId: user.id });
     });
 
@@ -217,7 +225,9 @@ const SessionPage = () => {
 
     // Get Local Media (if not message mode)
     const initMedia = async () => {
-      if (sessionMode === 'message') {
+      // Use ref to avoid stale closure - sessionMode from this closure may be outdated
+      const currentMode = sessionModeRef.current;
+      if (currentMode === 'message') {
         setStatus("Chat Session Active");
         setPeerConnected(true); // Always assume connected UI for chat mode initially
         return;
@@ -226,7 +236,7 @@ const SessionPage = () => {
       try {
         const constraints = {
           audio: true,
-          video: sessionMode === 'video_call'
+          video: currentMode === 'video_call'
         };
 
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
