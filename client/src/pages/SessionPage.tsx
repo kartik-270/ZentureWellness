@@ -193,11 +193,9 @@ const SessionPage = () => {
   useEffect(() => {
     if (!accessGranted || !sessionId || !user) return;
 
-    // Connect Socket - Force polling to bypass Nginx WebSocket upgrade issues
+    // Connect Socket - Restore default WebSockets now that AWS Gunicorn is fixed
     console.log("Connecting to SocketIO:", SOCKET_URL);
-    const socket = io(SOCKET_URL, {
-      transports: ['polling'] // Prevents the continuous reconnect loop
-    });
+    const socket = io(SOCKET_URL);
     socketRef.current = socket;
 
     socket.on('connect', () => {
