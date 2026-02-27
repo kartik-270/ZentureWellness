@@ -27,8 +27,8 @@ const NavItem = ({ href, icon: Icon, label, onClose }: { href: string; icon: any
       <a
         onClick={onClose}
         className={`flex items-center space-x-4 p-3 rounded-xl transition-all duration-200 ${isActive
-            ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20 font-semibold"
-            : "hover:bg-gray-800 text-gray-400 hover:text-white"
+          ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20 font-semibold"
+          : "hover:bg-gray-800 text-gray-400 hover:text-white"
           }`}
       >
         <Icon size={22} />
@@ -68,12 +68,14 @@ export default function CounsellorSidebar({ isOpen, onClose }: CounsellorSidebar
       <div>
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-white rounded-xl">
-              <img src={logo} alt="Zenture" className="w-8 h-8 object-contain" />
-            </div>
-            <span className="font-bold text-xl tracking-tight">Zenture</span>
-          </div>
+          <Link href="/">
+            <a className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+              <div className="p-2 bg-white rounded-xl">
+                <img src={logo} alt="Zenture" className="w-8 h-8 object-contain" />
+              </div>
+              <span className="font-bold text-xl tracking-tight">Zenture</span>
+            </a>
+          </Link>
           <button onClick={onClose} className="md:hidden p-2 hover:bg-gray-800 rounded-lg text-gray-400">
             <X size={20} />
           </button>

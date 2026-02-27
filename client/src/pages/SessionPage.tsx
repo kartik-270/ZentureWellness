@@ -213,8 +213,27 @@ const SessionPage = () => {
       console.log("A peer joined the room:", userId);
       setStatus("Peer joined. Establishing secure connection...");
       setPeerConnected(true);
-      // The person who was already in the room initiates the offer
-      createOffer();
+      // Only initiate offer if we're not already stable/connected
+      if (!pcRef.current || pcRef.current.signalingState === 'stable') {
+        createOffer();
+      }
+    });
+
+    socket.on('user-disconnected', (userId) => {
+      console.log("Peer disconnected:", userId);
+      setStatus("Participant left. Waiting for them to rejoin...");
+      setPeerConnected(false);
+      setRemoteStream(null);
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = null;
+      }
+
+      // Fully destroy the peer connection so it rebuilds cleanly if they rejoin
+      // This prevents the "SDP m-lines order doesn't match" renegotiation bug
+      if (pcRef.current) {
+        pcRef.current.close();
+        pcRef.current = null;
+      }
     });
 
     socket.on('offer', async (data) => {
@@ -337,8 +356,15 @@ const SessionPage = () => {
     // Auto-renegotiate when tracks are added after PC creation (handles late-stream race condition)
     pc.onnegotiationneeded = async () => {
       try {
-        if (pc.signalingState !== 'stable') return;
         console.log("Renegotiating due to track addition...");
+
+        // CRITICAL FIX: To prevent "m-lines order doesn't match", we MUST ensure
+        // the signaling state is perfectly stable before creating a new offer while a connection is live.
+        if (pc.signalingState !== 'stable') {
+          console.warn("Skipping renegotiation because signaling state is", pc.signalingState);
+          return;
+        }
+
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         socketRef.current?.emit('offer', { roomId: sessionId, offer });
@@ -552,7 +578,7 @@ const SessionPage = () => {
           // VIDEO LAYOUT
           <>
             {remoteStream ? (
-              <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+              <video ref={remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
             ) : (
               <div className="flex flex-col items-center justify-center text-gray-500 animate-pulse">
                 <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center mb-4">
@@ -562,7 +588,7 @@ const SessionPage = () => {
               </div>
             )}
             {/* Local PIP */}
-            <div className="absolute bottom-24 right-6 w-48 h-36 bg-black rounded-lg overflow-hidden border border-gray-700 shadow-2xl z-10">
+            <div className="absolute bottom-6 right-6 w-32 h-48 sm:w-48 sm:h-36 bg-black rounded-lg overflow-hidden border-2 border-gray-700 shadow-2xl z-10">
               {localStream && !isVideoOff ? (
                 <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover transform scale-x-[-1]" />
               ) : (

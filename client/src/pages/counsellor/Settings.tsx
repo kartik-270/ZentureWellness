@@ -157,17 +157,17 @@ export default function Settings() {
                         </div>
 
                         {/* Availability Grid */}
-                        <div className="bg-gray-900 p-10 lg:p-14 rounded-[3rem] text-white shadow-2xl shadow-gray-300 relative overflow-hidden group">
-                            <div className="absolute -left-10 -bottom-10 w-64 h-64 bg-blue-600/20 rounded-full blur-[100px] group-hover:scale-125 transition-transform duration-700"></div>
+                        <div className="bg-gradient-to-r from-blue-400 to-cyan-200 p-10 lg:p-14 rounded-[3rem] text-white shadow-2xl shadow-gray-300 relative overflow-hidden group">
+                            <div className="absolute -left-10 -bottom-10 w-64 h-64 bg-white rounded-full blur-[100px] group-hover:scale-125 transition-transform duration-700"></div>
 
                             <h2 className="text-3xl font-black uppercase tracking-tighter mb-10 flex items-center gap-4 relative z-10">
-                                <Clock className="text-blue-400" size={32} />
+                                <Clock className="text-white" size={32} />
                                 Operation Windows
                             </h2>
 
                             <div className="space-y-10 relative z-10">
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">Active Service Days</label>
+                                    <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-700 mb-6">Active Service Days</label>
                                     <div className="flex flex-wrap gap-3">
                                         {DAYS_OF_WEEK.map(day => (
                                             <button
@@ -187,28 +187,28 @@ export default function Settings() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                     <div className="space-y-4">
-                                        <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Shift Commencement</label>
+                                        <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-700">Shift Commencement</label>
                                         <input
                                             type="time"
                                             value={startTime}
                                             onChange={(e) => handleTimeChange('start', e.target.value)}
-                                            className="w-full bg-gray-800 border-none rounded-2xl px-6 py-4 text-sm font-black text-white outline-none focus:ring-2 ring-blue-500 shadow-xl"
+                                            className="w-full bg-white text-gray-900 border-none rounded-2xl px-6 py-4 text-sm outline-none focus:ring-2 ring-blue-500 shadow-xl"
                                         />
                                     </div>
-                                    <div className="space-y-4">
-                                        <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Shift Conclusion</label>
+                                    <div className="space-y-4 ">
+                                        <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-700">Shift Conclusion</label>
                                         <input
                                             type="time"
                                             value={endTime}
                                             onChange={(e) => handleTimeChange('end', e.target.value)}
-                                            className="w-full bg-gray-800 border-none rounded-2xl px-6 py-4 text-sm font-black text-white outline-none focus:ring-2 ring-blue-500 shadow-xl"
+                                            className="w-full bg-white text-gray-900 border-none rounded-2xl px-6 py-4 text-sm outline-none focus:ring-2 ring-blue-500 shadow-xl"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="p-6 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm">
-                                    <p className="text-[10px] font-black text-blue-300/60 uppercase tracking-widest leading-relaxed">
-                                        The system dynamically partitions your selected time window into 30-minute professional consultation slots.
+                                <div className="p-6 bg-white rounded-3xl border border-white/10 backdrop-blur-sm">
+                                    <p className="text-[10px] font-black text-blue-500/80 uppercase tracking-widest leading-relaxed">
+                                        The system dynamically partitions your selected time window into 15-minute professional consultation slots.
                                     </p>
                                 </div>
                             </div>
@@ -219,7 +219,7 @@ export default function Settings() {
                             <button
                                 type="submit"
                                 disabled={isSaving}
-                                className="bg-blue-600 text-white px-16 py-6 rounded-[2.5rem] font-black uppercase tracking-[0.2em] text-xs hover:bg-blue-700 transition-all shadow-2xl shadow-blue-200 disabled:opacity-50 flex items-center gap-4 group"
+                                className="bg-gradient-to-r from-blue-400 to-cyan-200 text-white px-16 py-6 rounded-[2.5rem] font-black uppercase tracking-[0.2em] text-xs hover:bg-blue-700 transition-all shadow-2xl shadow-blue-200 disabled:opacity-50 flex items-center gap-4 group"
                             >
                                 {isSaving ? (
                                     <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>

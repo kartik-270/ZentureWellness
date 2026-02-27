@@ -153,10 +153,10 @@ export default function Clients() {
                                         Student Profile
                                     </div>
                                     <h2 className="text-4xl font-black text-gray-900 uppercase tracking-tighter leading-none mb-2">{selectedClient.student.name}</h2>
-                                    <p className="text-gray-400 font-black text-sm tracking-widest flex items-center justify-center md:justify-start gap-2 uppercase">
+                                    {/* <p className="text-gray-400 font-black text-sm tracking-widest flex items-center justify-center md:justify-start gap-2 uppercase">
                                         <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                                         {selectedClient.student.email}
-                                    </p>
+                                    </p> */}
                                 </div>
                             </div>
 

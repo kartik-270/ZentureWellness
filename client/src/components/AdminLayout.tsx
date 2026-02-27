@@ -101,10 +101,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title, icon, userna
                 <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-7xl mx-auto">
                     {/* Desktop Header */}
                     <header className="hidden md:flex justify-between items-center pb-4 border-b border-gray-300">
-                        <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-                            {icon}
-                            {title}
-                        </h1>
+                        <Link href="/">
+                            <a className="hover:opacity-80 transition-opacity cursor-pointer">
+                                <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                                    {icon}
+                                    {title}
+                                </h1>
+                            </a>
+                        </Link>
                         <div className="flex items-center space-x-3">
                             <span className="text-lg text-gray-600">
                                 Welcome, <span className="font-semibold text-gray-900">{username}</span>!

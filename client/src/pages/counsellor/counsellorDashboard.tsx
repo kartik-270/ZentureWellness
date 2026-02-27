@@ -39,7 +39,6 @@ interface Client {
 }
 
 const SESSION_DURATION = 30 * 60 * 1000;
-const GRACE_PERIOD = 30 * 60 * 1000;
 
 const isSessionStarting = (app: Appointment) => {
   if (app.status === "completed" || app.status === "canceled" || app.status === "rejected") return false;
@@ -48,7 +47,7 @@ const isSessionStarting = (app: Appointment) => {
 
   return (
     now >= appointmentTime - 10 * 60 * 1000 &&
-    now <= appointmentTime + SESSION_DURATION + GRACE_PERIOD
+    now <= appointmentTime + SESSION_DURATION
   );
 };
 
@@ -57,8 +56,8 @@ const formatAppointments = (appointments: Appointment[]): Appointment[] => {
 
   return appointments.map((app) => {
     const appTime = new Date(app.date).getTime();
-    const isPast = now > appTime + SESSION_DURATION + GRACE_PERIOD;
-    const isLive = now >= appTime - 10 * 60 * 1000 && now <= appTime + SESSION_DURATION + GRACE_PERIOD;
+    const isPast = now > appTime + SESSION_DURATION;
+    const isLive = now >= appTime - 10 * 60 * 1000 && now <= appTime + SESSION_DURATION;
 
     let category: Appointment["category"] = "upcoming";
 
