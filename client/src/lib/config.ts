@@ -1,3 +1,3 @@
 export const apiConfig = {
-    baseUrl: "https://zenture.duckdns.org"
+    baseUrl: "https://zenture.duckdns.org/api"
 };
