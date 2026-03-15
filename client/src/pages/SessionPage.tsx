@@ -28,6 +28,15 @@ const SessionPage = () => {
   const [turnServers, setTurnServers] = useState<any>(FALLBACK_RTC_CONFIG);
   const [errorHeader, setErrorHeader] = useState("Access Denied");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [feedbackForm, setFeedbackForm] = useState({
+    feedback: '',
+    rating: 5,
+    helpfulness: 5,
+    emotional_state: 'Neutral'
+  });
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   // Connection State
   const [status, setStatus] = useState("Initializing connection...");
@@ -97,7 +106,40 @@ const SessionPage = () => {
         }
       }
 
+      if (confirm("Redirect to dashboard now?")) {
+        handleRedirection();
+      } else {
+        // Show feedback form instead of redirecting
+        setShowFeedback(true);
+      }
+    }
+  };
+
+  const submitFeedback = async () => {
+    setSubmittingFeedback(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${apiConfig.baseUrl}/appointments/${appointmentId}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(feedbackForm)
+      });
+
+      if (res.ok) {
+        setFeedbackSubmitted(true);
+        setTimeout(() => handleRedirection(), 2000);
+      } else {
+        alert("Failed to submit feedback. Redirecting...");
+        handleRedirection();
+      }
+    } catch (e) {
+      console.error("Feedback error:", e);
       handleRedirection();
+    } finally {
+      setSubmittingFeedback(false);
     }
   };
 
@@ -640,6 +682,99 @@ const SessionPage = () => {
           <MessageSquare />
         </button>
       </div>
+
+      {/* Feedback Overlay */}
+      {showFeedback && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[60] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white text-gray-900 w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16"></div>
+            
+            {feedbackSubmitted ? (
+              <div className="text-center py-10">
+                <div className="w-20 h-20 bg-green-100 rounded-2xl flex items-center justify-center text-green-600 mx-auto mb-6">
+                  <ShieldCheck size={40} />
+                </div>
+                <h2 className="text-2xl font-black uppercase tracking-tighter mb-2">Thank You!</h2>
+                <p className="text-gray-500 font-medium">Your feedback has been recorded. Redirecting you home...</p>
+              </div>
+            ) : (
+              <div className="relative z-10">
+                <h2 className="text-3xl font-black uppercase tracking-tighter mb-1">Session Feedback</h2>
+                <p className="text-gray-400 text-sm font-bold uppercase tracking-widest mb-8">Role: {user?.role}</p>
+
+                <div className="space-y-6">
+                  {user?.role === 'student' ? (
+                    <>
+                      <div>
+                        <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">How do you feel now?</label>
+                        <select 
+                          className="w-full bg-gray-50 border-none rounded-2xl px-4 py-3 font-bold text-gray-700 outline-none ring-2 ring-transparent focus:ring-blue-500 transition-all"
+                          value={feedbackForm.emotional_state}
+                          onChange={e => setFeedbackForm({...feedbackForm, emotional_state: e.target.value})}
+                        >
+                          {['Happy', 'Relieved', 'Calm', 'Neutral', 'Sad', 'Anxious'].map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Session Helpfulness (1-5)</label>
+                          <input 
+                            type="number" min="1" max="5"
+                            className="w-full bg-gray-50 border-none rounded-2xl px-4 py-3 font-bold text-gray-700 outline-none ring-2 ring-transparent focus:ring-blue-500 transition-all"
+                            value={feedbackForm.helpfulness}
+                            onChange={e => setFeedbackForm({...feedbackForm, helpfulness: parseInt(e.target.value)})}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Counselor Rating (1-5)</label>
+                          <input 
+                            type="number" min="1" max="5"
+                            className="w-full bg-gray-50 border-none rounded-2xl px-4 py-3 font-bold text-gray-700 outline-none ring-2 ring-transparent focus:ring-blue-500 transition-all"
+                            value={feedbackForm.rating}
+                            onChange={e => setFeedbackForm({...feedbackForm, rating: parseInt(e.target.value)})}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Student's Emotional State (Assessment)</label>
+                      <input 
+                        className="w-full bg-gray-50 border-none rounded-2xl px-4 py-3 font-bold text-gray-700 outline-none ring-2 ring-transparent focus:ring-blue-500 transition-all"
+                        placeholder="e.g. Improved, Stable, Crisis"
+                        value={feedbackForm.emotional_state}
+                        onChange={e => setFeedbackForm({...feedbackForm, emotional_state: e.target.value})}
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">
+                      {user?.role === 'student' ? 'Share your experience...' : 'Case notes and feedback about student...'}
+                    </label>
+                    <textarea 
+                      className="w-full bg-gray-50 border-none rounded-2xl px-4 py-4 font-bold text-gray-700 outline-none ring-2 ring-transparent focus:ring-blue-500 transition-all min-h-[120px]"
+                      placeholder="Type here..."
+                      value={feedbackForm.feedback}
+                      onChange={e => setFeedbackForm({...feedbackForm, feedback: e.target.value})}
+                    />
+                  </div>
+
+                  <button 
+                    onClick={submitFeedback}
+                    disabled={submittingFeedback}
+                    className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-blue-200 hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {submittingFeedback ? <Loader2 className="animate-spin" size={20} /> : <ShieldCheck size={20} />}
+                    Submit Final Report
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
     </div>
   );

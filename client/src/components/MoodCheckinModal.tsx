@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { apiConfig } from "@/lib/config";
-import { CheckCircle2, ChevronRight, ChevronLeft, Save } from "lucide-react";
+import { CheckCircle2, ChevronRight, ChevronLeft, Save, Camera, Loader2 } from "lucide-react";
+import Webcam from "react-webcam";
 
 type MoodCheckinModalProps = {
     isOpen: boolean;
@@ -43,6 +44,10 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
     const [energy, setEnergy] = useState("Medium");
     const [isSaving, setIsSaving] = useState(false);
     const [analysis, setAnalysis] = useState("");
+    const [isScanning, setIsScanning] = useState(false);
+    const [scanError, setScanError] = useState("");
+    const [detectedStress, setDetectedStress] = useState<number | null>(null);
+    const webcamRef = useRef<Webcam>(null);
 
     // Reset state when modal closes
     useEffect(() => {
@@ -93,6 +98,52 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
         }
     };
 
+    const handleFacialScan = async (imageSrc: string) => {
+        setIsScanning(true);
+        setScanError("");
+        try {
+            // 1. Get stress score from inference server
+            const res = await fetch(`http://localhost:5001/facial-stress`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ image: imageSrc })
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                setDetectedStress(data.stress_level);
+                setIntensity(Math.round(data.stress_level));
+                
+                // Map emotion to mood label
+                const emotionMap: {[key: string]: string} = {
+                    "angry": "Angry", "fear": "Anxious", "sad": "Sad", 
+                    "disgust": "Stressed", "surprise": "Stressed", "happy": "Happy", "neutral": "Calm"
+                };
+                setMood(emotionMap[data.emotion] || "Calm");
+
+                // 2. Log facial analysis to backend
+                const token = localStorage.getItem("authToken");
+                await fetch(`${apiConfig.baseUrl}/mood-checkin/facial-analysis`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ stress_level: data.stress_level })
+                });
+
+                // Auto-advance to intensity step
+                setStep(2);
+            } else {
+                setScanError(data.error || "Failed to analyze expression.");
+            }
+        } catch (e) {
+            setScanError("Could not connect to analysis server.");
+        } finally {
+            setIsScanning(false);
+        }
+    };
+
     const handleFinish = () => {
         onSuccess(analysis);
         onClose();
@@ -120,7 +171,15 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
                     {/* Step 1: Mood */}
                     {step === 1 && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <h3 className="font-semibold text-md text-slate-800">How's your mood right now?</h3>
+                            <h3 className="font-semibold text-md text-slate-800 flex items-center justify-between">
+                                How's your mood right now?
+                                <button 
+                                    onClick={() => setStep(0)} 
+                                    className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full hover:bg-blue-100 transition-all flex items-center gap-2"
+                                >
+                                    <Camera size={12} /> Scan Expression
+                                </button>
+                            </h3>
                             <div className="grid grid-cols-3 gap-3">
                                 {moods.map((m) => (
                                     <button
@@ -141,6 +200,41 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
                                     </button>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {/* Step 0: Facial Scan */}
+                    {step === 0 && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <h3 className="font-semibold text-md text-slate-800">Looking for your expression...</h3>
+                            <div className="relative rounded-2xl overflow-hidden bg-black aspect-video flex items-center justify-center">
+                                {isScanning ? (
+                                    <div className="absolute inset-0 z-10 bg-black/50 flex flex-col items-center justify-center text-white">
+                                        <Loader2 className="animate-spin mb-2" />
+                                        <p className="text-xs font-bold uppercase tracking-widest">Analyzing Facial Cues...</p>
+                                    </div>
+                                ) : null}
+                                <Webcam
+                                    audio={false}
+                                    ref={webcamRef}
+                                    screenshotFormat="image/jpeg"
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute bottom-4 left-0 w-full px-4 flex justify-center">
+                                    <Button 
+                                        onClick={() => {
+                                            const img = webcamRef.current?.getScreenshot();
+                                            if (img) handleFacialScan(img);
+                                        }}
+                                        disabled={isScanning}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 shadow-2xl"
+                                    >
+                                        Take Snapshot
+                                    </Button>
+                                </div>
+                            </div>
+                            {scanError && <p className="text-red-500 text-[10px] font-bold uppercase text-center">{scanError}</p>}
+                            <p className="text-gray-500 text-[10px] font-medium text-center italic">Expression detection helps us offer more personalized support.</p>
                         </div>
                     )}
 
@@ -248,8 +342,8 @@ export default function MoodCheckinModal({ isOpen, onClose, onSuccess, isSimplif
 
                     {/* Footer Actions */}
                     <div className="mt-8 flex items-center justify-between">
-                        {step > 1 && step < 6 ? (
-                            <Button variant="ghost" onClick={prevStep} className="text-slate-500">
+                        {(step > 1 || step === 0) && step < 6 ? (
+                            <Button variant="ghost" onClick={() => setStep(1)} className="text-slate-500">
                                 <ChevronLeft className="mr-2" size={18} /> Back
                             </Button>
                         ) : <div />}

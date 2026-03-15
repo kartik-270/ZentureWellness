@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from 'uuid';
 import { apiConfig } from "@/lib/config";
-import { Volume2, VolumeX, Calendar, RotateCcw, Send, Loader2 } from 'lucide-react';
+import { Volume2, VolumeX, Calendar, RotateCcw, Send, Loader2, Camera, UserCircle } from 'lucide-react';
+import Webcam from 'react-webcam';
 import { useLocation } from "wouter";
 
 // Define the types for a message
@@ -20,6 +21,9 @@ const Chatbot: React.FC = () => {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showWebcam, setShowWebcam] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [detectedEmotion, setDetectedEmotion] = useState<string | null>(null);
   const [, setLocation] = useLocation();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -192,11 +196,52 @@ const Chatbot: React.FC = () => {
     handleStartNewChat();
   };
 
+  const webcamRef = useRef<Webcam>(null);
+
   const handleStartNewChat = () => {
     setMessages([]);
     setConversationId(null);
     setShowFeedback(false);
     setFeedbackSubmitted(false);
+  };
+
+  const handleFacialScan = async () => {
+    const imageSrc = webcamRef.current?.getScreenshot();
+    if (!imageSrc) return;
+    
+    setIsScanning(true);
+    try {
+      const token = getToken();
+      // Route through the backend — it proxies to the inference server and handles DB logging
+      const res = await fetch(`${apiConfig.baseUrl}/chatbot/facial-analysis`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ image: imageSrc })
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        setDetectedEmotion(data.emotion);
+        
+        setMessages(prev => [...prev, { 
+          text: `[Facial Analysis: Detected emotion is "${data.emotion}" with stress level ${data.stress_level}/10. Sharing this with the AI for context.]`, 
+          isUser: true 
+        }]);
+        
+        // Auto-message the bot with the emotion as natural language context
+        handleSendMessage(`I'm feeling a bit like the emotion you detected (${data.emotion}). Can you help me process this?`);
+      } else {
+        console.error("Facial analysis failed:", data.error);
+      }
+    } catch (e) {
+      console.error("Facial analysis error:", e);
+    } finally {
+      setIsScanning(false);
+      setShowWebcam(false);
+    }
   };
 
   return (
@@ -299,6 +344,13 @@ const Chatbot: React.FC = () => {
           disabled={isTyping}
         />
         <button
+          onClick={() => setShowWebcam(!showWebcam)}
+          className={`flex-shrink-0 w-10 h-10 flex items-center justify-center ml-2 transition-colors focus:outline-none ${showWebcam ? 'text-blue-500' : 'text-gray-400 hover:text-blue-600'}`}
+          title="Facial Expression Analysis"
+        >
+          <Camera size={24} />
+        </button>
+        <button
           onClick={() => setLocation('/book-appointment')}
           className="flex-shrink-0 w-10 h-10 flex items-center justify-center ml-2 text-gray-400 hover:text-blue-600 transition-colors focus:outline-none"
           title="Book Counseling Session"
@@ -313,6 +365,42 @@ const Chatbot: React.FC = () => {
           <Send size={20} />
         </button>
       </div>
+
+      {showWebcam && (
+        <div className="absolute inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-6 text-center">
+          <div className="relative w-full aspect-square max-w-[280px] rounded-full overflow-hidden border-4 border-blue-500 shadow-2xl">
+            <Webcam
+              ref={webcamRef}
+              audio={false}
+              screenshotFormat="image/jpeg"
+              className="w-full h-full object-cover"
+            />
+            {isScanning && (
+              <div className="absolute inset-0 bg-blue-500/20 backdrop-blur-sm flex items-center justify-center">
+                <Loader2 className="text-white animate-spin" size={40} />
+              </div>
+            )}
+          </div>
+          <p className="text-white text-xs font-black uppercase tracking-widest mt-8 mb-2">Expression Analysis</p>
+          <p className="text-white/60 text-[10px] font-medium mb-8 px-8 leading-relaxed">Center your face to allow the AI to detect your emotional state and provide better support.</p>
+          
+          <div className="flex gap-4">
+            <button 
+              onClick={() => setShowWebcam(false)}
+              className="px-6 py-3 rounded-xl border border-white/20 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={handleFacialScan}
+              disabled={isScanning}
+              className="px-8 py-3 rounded-xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/40 hover:bg-blue-700 transition-all disabled:opacity-50"
+            >
+              Detect Emotion
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="text-center py-2 text-xs text-gray-400">
         <span>[ ⚡️ by Zenture ]</span>

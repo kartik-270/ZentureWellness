@@ -367,6 +367,9 @@ const ResourceManagement: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                   rows={3}
                 />
               </div>
@@ -390,7 +393,7 @@ const ResourceManagement: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {formData.type === 'article' ? "Header Image (Optional)" : "Media File (Optional)"}
+                    {formData.type === 'article' ? "Header Image (Optional)" : "Media File"}
                   </label>
                   <div className="flex items-center gap-3">
                     <div className="relative">
